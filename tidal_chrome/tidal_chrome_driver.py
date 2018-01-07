@@ -59,7 +59,7 @@ class Driver:
         return self.driver.find_element_by_class_name("js-footer-player-image").get_property("src")
 
     def currentTrackProgress(self):
-        t = self.driver.find_element_by_class_name("js-progress").get_property("innerHTML")
+        t = self.driver.find_element_by_class_name("js-progress").get_property("innerHTML").split(":")
         return int(t[0]) * 60 + int(t[1])
 
     def currentTrackDuration(self):
@@ -71,6 +71,12 @@ class Driver:
         if len(link) == 0:
             return ""
         return link[0].find_element_by_tag_name("span").get_property("innerHTML")
+
+    def raiseWindow(self):
+        return self.driver.switch_to.window(self.driver.current_window_handle)
+
+    def setFullscreen(self):
+        return self.driver.fullscreen_window()
 
     def quit(self):
         self.driver.quit()

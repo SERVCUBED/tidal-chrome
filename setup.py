@@ -18,7 +18,10 @@ def check_dependency(package, version):
         logging.warning("Missing runtime dependencies:\n\t" + str(e))
     except RuntimeError as e:
         # caused by the final __import__() statement
-logging.warning("Bad runtime dependency:\n\t" + str(e))
+        logging.warning("Bad runtime dependency:\n\t" + str(e))
+
+
+check_dependency("google-chrome", 0)
 
 setup(
     name='tidal-chrome',
@@ -30,9 +33,7 @@ setup(
     author_email='ben@servc.eu',
     description=__description__,
     long_description=README,
-    depends=('chromedriver', 'google-chrome', 'selenium', 'flask', 'naked'),
-    data_files=[('node-mpris', ['node-mpris/index.js', 'node-mpris,package.json'])],
-    scripts=['node-install.sh'],
+    depends=('selenium', 'gi', 'chromedriver', 'google-chrome', 'python-dbus'),
     install_requires=requires,
     entry_points={
         'console_scripts': [
