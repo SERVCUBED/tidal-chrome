@@ -1,0 +1,76 @@
+# Part of the Tidal-Chrome MPRIS bridge
+# Author: SERVCUBED 2018-
+# License: GPL
+
+import os
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+
+class Driver:
+
+    def __init__(self):
+        chrome_options = Options()
+        chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("user-data-dir=" + os.path.expanduser("~/.config/tidal-google-chrome/"))
+        chrome_options.add_argument("--app=https://listen.tidal.com/")
+
+        print("Starting webdriver")
+        self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
+
+        print("Started")
+
+    def CanPlay(self):
+        return "player--audio" in \
+               self.driver.find_elements_by_class_name("player")[-1].get_property("classList")
+
+    def play(self):
+        self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-play")[-1])
+
+    def pause(self):
+        self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-pause")[-1])
+
+    def next(self):
+        self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-next")[-1])
+
+    def previous(self):
+        self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-previous")[-1])
+
+    def isPlaying(self):
+        return "play-controls__main-button--playing" in \
+               self.driver.find_elements_by_class_name("js-main-button")[-1].get_property("classList")
+
+    def isShuffle(self):
+        return "active" in \
+               self.driver.find_elements_by_class_name("js-shuffle")[-1].get_property("classList")
+
+    def toggleShuffle(self):
+        self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-shuffle")[-1])
+
+    def currentTrackTitle(self):
+        return self.driver.find_element_by_class_name("now-playing__metadata__title").get_property("title")
+
+    def currentTrackArtists(self):
+        return ", ".join([x.get_property("title") for x in
+                          self.driver.find_element_by_class_name("now-playing__metadata__artist").
+                         find_elements_by_tag_name('a')])
+
+    def currentTrackImage(self):
+        return self.driver.find_element_by_class_name("js-footer-player-image").get_property("src")
+
+    def currentTrackProgress(self):
+        t = self.driver.find_element_by_class_name("js-progress").get_property("innerHTML")
+        return int(t[0]) * 60 + int(t[1])
+
+    def currentTrackDuration(self):
+        t = self.driver.find_element_by_class_name("js-duration").get_property("innerHTML").split(":")
+        return int(t[0]) * 60 + int(t[1])
+
+    def currentLocation(self):
+        link = self.driver.find_elements_by_class_name("menu__link--active")
+        if len(link) == 0:
+            return ""
+        return link[0].find_element_by_tag_name("span").get_property("innerHTML")
+
+    def quit(self):
+        self.driver.quit()
