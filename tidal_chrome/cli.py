@@ -27,7 +27,7 @@ BUS_NAME = "org.mpris.MediaPlayer2.tidal-chrome"
 class MPRIS(dbus.service.Object):
     def __init__(self):
         self.quit = False
-        self.driver = tidal_chrome_driver.Driver()
+        self.driver = tidal_chrome.tidal_chrome_driver.Driver()
         self.baseproperties = {"CanQuit": True, "Fullscreen": False, "CanSetFullscreen": True, "CanRaise": False,
                                "HasTrackList": False, "Identity": "Tidal-Chrome API bridge",
                                "SupportedUriSchemes": [''],
@@ -244,3 +244,7 @@ def run():
     finally:
         loop.quit()
         sys.exit(0)
+
+
+if __name__ == '__main__':
+    run()
