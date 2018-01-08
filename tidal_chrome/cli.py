@@ -14,7 +14,7 @@ import threading
 import time
 import dbus
 import dbus.service
-import tidal_chrome_driver
+import tidal_chrome.tidal_chrome_driver
 
 from dbus.mainloop.glib import DBusGMainLoop
 
@@ -229,7 +229,7 @@ class MPRIS(dbus.service.Object):
                 print("Reduced update error: " + sys.exc_info()[0])
 
 
-if __name__ == "__main__":
+def run():
     DBusGMainLoop(set_as_default=True)
     loop = GLib.MainLoop()
 

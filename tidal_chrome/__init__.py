@@ -1,6 +1,6 @@
 __version__ = '1.0'
 __description__ = 'Tidal-Chrome MPRIS bridge'
-requires = ['chromedriver', 'google-chrome', 'npm', 'selenium']
+requires = ['selenium', 'gi', 'chromedriver_installer', 'dbus-python']
 
 README = """
 """
