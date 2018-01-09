@@ -21,8 +21,8 @@ class Driver:
         print("Started")
 
     def CanPlay(self):
-        return "player--audio" in \
-               self.driver.find_elements_by_class_name("player")[-1].get_property("classList")
+        return "has-media" in \
+               self.driver.find_element_by_class_name("grid").get_property("classList")
 
     def play(self):
         self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-play")[-1])
@@ -38,11 +38,11 @@ class Driver:
 
     def isPlaying(self):
         return "play-controls__main-button--playing" in \
-               self.driver.find_elements_by_class_name("js-main-button")[-1].get_property("classList")
+               self.driver.find_element_by_class_name("js-main-button").get_property("classList")
 
     def isShuffle(self):
         return "active" in \
-               self.driver.find_elements_by_class_name("js-shuffle")[-1].get_property("classList")
+               self.driver.find_element_by_class_name("js-shuffle").get_property("classList")
 
     def toggleShuffle(self):
         self.driver.execute_script("arguments[0].click();", self.driver.find_elements_by_class_name("js-shuffle")[-1])
@@ -60,17 +60,26 @@ class Driver:
 
     def currentTrackProgress(self):
         t = self.driver.find_element_by_class_name("js-progress").get_property("innerHTML").split(":")
-        return int(t[0]) * 60 + int(t[1])
+        return int(t[0]) * 60 + int(t[1]) * 10000000  # Microseconds
 
     def currentTrackDuration(self):
         t = self.driver.find_element_by_class_name("js-duration").get_property("innerHTML").split(":")
-        return int(t[0]) * 60 + int(t[1])
+        return int(t[0]) * 60 + int(t[1]) * 10000000  # Microseconds
 
     def currentLocation(self):
         link = self.driver.find_elements_by_class_name("menu__link--active")
         if len(link) == 0:
             return ""
         return link[0].find_element_by_tag_name("span").get_property("innerHTML")
+
+    def setPosition(self, position):
+        el = self.driver.find_element_by_class_name("progressbar__interaction-layer")
+        clickxpos = position * el.size["width"] / self.currentTrackDuration()
+
+        action = webdriver.ActionChains(self.driver)
+        action.move_to_element_with_offset(el, clickxpos, 5)
+        action.click()
+        action.perform()
 
     def raiseWindow(self):
         return self.driver.switch_to.window(self.driver.current_window_handle)

@@ -7,12 +7,8 @@ integration.
 
 Install Google Chrome and Chrome's flash player plugin from your repositories first. Then install the module with:
 
-    # python setup.py install
-
-If you run into exceptions about utf-8 resource decoding then manually install `chromedriver_installer` 
-first with:
-
     # pip install chromedriver_installer 
+    # python setup.py install
 
 # Using TIDAL-Chrome
 
