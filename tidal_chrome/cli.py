@@ -25,7 +25,8 @@ BUS_NAME = "org.mpris.MediaPlayer2.tidal-chrome"
 
 
 class MPRIS(dbus.service.Object):
-    def __init__(self):
+    def __init__(self, isdebug):
+        self.isdebug = isdebug
         self.quit = False
         self.driver = tidal_chrome.tidal_chrome_driver.Driver()
         self.baseproperties = {"CanQuit": True, "Fullscreen": False, "CanSetFullscreen": True, "CanRaise": False,
@@ -165,7 +166,8 @@ class MPRIS(dbus.service.Object):
         self.playerproperties[name] = value
 
     def _update_tick(self):
-        print("Tick")
+        if self.isdebug:
+            print("Tick")
         changed = {}
 
         curr_title = self.driver.currentTrackTitle()
@@ -200,7 +202,8 @@ class MPRIS(dbus.service.Object):
             self.PropertiesChanged(PLAYER_IFACE, changed, [])
 
     def _update_reduced_tick(self):
-        print("Reduced Tick")
+        if self.isdebug:
+            print("Reduced Tick")
         changed = {}
 
         isshuffle = self.driver.isShuffle()
@@ -230,14 +233,15 @@ class MPRIS(dbus.service.Object):
             time.sleep(30)
 
 
-def run():
+def run(isdebug=False):
+    print("TIDAL-Chrome by SERVCUBED, isdebug=" + str(isdebug))
     DBusGMainLoop(set_as_default=True)
     loop = GLib.MainLoop()
 
     a = None
 
     try:
-        a = MPRIS()
+        a = MPRIS(isdebug)
         loop.run()
     except KeyboardInterrupt:
         print("Keyboard interrupt")
@@ -248,4 +252,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    run(True)
