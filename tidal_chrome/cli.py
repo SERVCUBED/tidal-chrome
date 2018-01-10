@@ -15,6 +15,8 @@ import time
 import dbus
 import dbus.service
 import tidal_chrome.tidal_chrome_driver
+import traceback
+from selenium.common.exceptions import WebDriverException
 
 from dbus.mainloop.glib import DBusGMainLoop
 
@@ -215,21 +217,31 @@ class MPRIS(dbus.service.Object):
             self.PropertiesChanged(PLAYER_IFACE, changed, [])
 
     def _timer_start(self):
-        time.sleep(5)
+        time.sleep(10)
         while not self.quit:
             try:
                 self._update_tick()
+            except WebDriverException as e:
+                if e.msg == "chrome not reachable":
+                    print("Quitting")
+                    self.Quit()
+                    return
             except:
-                print("Update error: ", sys.exc_info())
+                print("Update error: ", traceback.format_exc())
             time.sleep(5)
 
     def _reduced_timer_start(self):
-        time.sleep(5)
+        time.sleep(10)
         while not self.quit:
             try:
                 self._update_reduced_tick()
+            except WebDriverException as e:
+                if e.msg == "chrome not reachable":
+                    print("Quitting")
+                    self.Quit()
+                    return
             except:
-                print("Reduced update error: ", sys.exc_info())
+                print("Reduced update error: ", traceback.format_exc())
             time.sleep(30)
 
 

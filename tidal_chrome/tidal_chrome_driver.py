@@ -18,6 +18,9 @@ class Driver:
         print("Starting webdriver")
         self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
 
+        print("Waiting for load")
+        self.driver.implicitly_wait(10)
+
         print("Started")
 
     def CanPlay(self):
