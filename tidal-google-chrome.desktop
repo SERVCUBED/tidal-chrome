@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=TIDAL
+GenericName=Music Player
+Comment=Stream from TIDAL with TIDAL-Chrome
+StartupWMClass=Tidal-Google-chrome
+Exec=tidal-chrome
+Terminal=true
+Icon=google-chrome
+Type=Application
+Categories=AudioVideo
