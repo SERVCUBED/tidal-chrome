@@ -37,7 +37,8 @@ class MPRIS(dbus.service.Object):
                                "SupportedMimeTypes": ['']}
         self.playerproperties = {"PlaybackStatus": "Stopped", "LoopStatus": "None", "Rate": 1.0, "Shuffle": False,
                                  "Metadata": dbus.Dictionary({
-                                     'mpris:trackid': "",
+                                     'mpris:trackid': dbus.ObjectPath("/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                                                                      variant_level=1),
                                      'mpris:length': 0,
                                      'mpris:artUrl': "",
                                      'xesam:title': "",
@@ -174,8 +175,10 @@ class MPRIS(dbus.service.Object):
 
         if self._last_track_name != curr_title:
             self._last_track_name = curr_title
+            duration = self.driver.currentTrackDuration()
             self.playerproperties["Metadata"] = dbus.Dictionary({
-                'mpris:length': self.driver.currentTrackDuration(),
+                'mpris:trackid': dbus.ObjectPath('/org/mpris/MediaPlayer2/TrackList/' + str(duration), variant_level=1),
+                'mpris:length': duration,
                 'mpris:artUrl': self.driver.currentTrackImage(),
                 'xesam:title': curr_title,
                 'xesam:album': self.driver.currentLocation(),
