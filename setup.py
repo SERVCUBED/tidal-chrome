@@ -1,6 +1,9 @@
 from setuptools import setup
-from tidal_chrome import __version__, __description__, requires, README
+from tidal_chrome import __version__, __description__, requires
+import os
 
+with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
+    README = f.read()
 
 setup(
     name='tidal-chrome',
