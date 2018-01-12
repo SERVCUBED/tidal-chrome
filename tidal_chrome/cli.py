@@ -54,11 +54,9 @@ class MPRIS(dbus.service.Object):
         bus_name = dbus.service.BusName(BUS_NAME, bus=bus)
         dbus.service.Object.__init__(self, bus_name, OPATH)
 
+        self._timer_i = 0
         self.tick_timer = threading.Thread(target=self._timer_start)
         self.tick_timer.start()
-
-        self.reduced_tick_timer = threading.Thread(target=self._reduced_timer_start)
-        self.reduced_tick_timer.start()
 
     @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="", out_signature="")
     def Raise(self):
@@ -221,28 +219,26 @@ class MPRIS(dbus.service.Object):
         while not self.quit:
             try:
                 self._update_tick()
+
+                self._timer_i += 1
+                if self._timer_i >= 5:
+                    self._timer_i = 0
+                    self._update_reduced_tick()
+
             except WebDriverException as e:
                 if e.msg == "chrome not reachable":
                     print("Quitting")
                     self.Quit()
-                    return
+                else:
+                    print("WebDriverException: " + e.msg)
+            except ConnectionRefusedError:
+                print("Chrome connection refused. Quitting")
+                self.Quit()
+
             except:
                 print("Update error: ", traceback.format_exc())
-            time.sleep(5)
 
-    def _reduced_timer_start(self):
-        time.sleep(10)
-        while not self.quit:
-            try:
-                self._update_reduced_tick()
-            except WebDriverException as e:
-                if e.msg == "chrome not reachable":
-                    print("Quitting")
-                    self.Quit()
-                    return
-            except:
-                print("Reduced update error: ", traceback.format_exc())
-            time.sleep(30)
+            time.sleep(5)
 
 
 def run(isdebug=False):
