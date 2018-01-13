@@ -5,20 +5,23 @@
 # Author: SERVCUBED
 # License: GPL
 
-# MPRIS Specification: https://specifications.freedesktop.org/mpris-spec/latest/
-# D-Bus Specification: https://dbus.freedesktop.org/doc/dbus-specification.html
+# MPRIS Specification:
+#   https://specifications.freedesktop.org/mpris-spec/latest/
+# D-Bus Specification:
+#   https://dbus.freedesktop.org/doc/dbus-specification.html
 
-from gi.repository import GLib
 import sys
 import threading
 import time
+import traceback
+
 import dbus
 import dbus.service
-import tidal_chrome.tidal_chrome_driver
-import traceback
+from dbus.mainloop.glib import DBusGMainLoop
+from gi.repository import GLib
 from selenium.common.exceptions import WebDriverException
 
-from dbus.mainloop.glib import DBusGMainLoop
+import tidal_chrome.tidal_chrome_driver
 
 OPATH = "/org/mpris/MediaPlayer2"
 BASE_IFACE = "org.mpris.MediaPlayer2"
@@ -31,23 +34,41 @@ class MPRIS(dbus.service.Object):
         self.isdebug = isdebug
         self.quit = False
         self.driver = tidal_chrome.tidal_chrome_driver.Driver()
-        self.baseproperties = {"CanQuit": True, "Fullscreen": False, "CanSetFullscreen": True, "CanRaise": False,
-                               "HasTrackList": False, "Identity": "Tidal-Chrome API bridge",
+
+        self.baseproperties = {"CanQuit": True,
+                               "Fullscreen": False,
+                               "CanSetFullscreen": True,
+                               "CanRaise": False,
+                               "HasTrackList": False,
+                               "Identity": "Tidal-Chrome API bridge",
                                "SupportedUriSchemes": [''],
                                "SupportedMimeTypes": ['']}
-        self.playerproperties = {"PlaybackStatus": "Stopped", "LoopStatus": "None", "Rate": 1.0, "Shuffle": False,
+
+        self.playerproperties = {"PlaybackStatus": "Stopped",
+                                 "LoopStatus": "None",
+                                 "Rate": 1.0,
+                                 "Shuffle": False,
                                  "Metadata": dbus.Dictionary({
-                                     'mpris:trackid': dbus.ObjectPath("/org/mpris/MediaPlayer2/TrackList/NoTrack",
-                                                                      variant_level=1),
+                                     'mpris:trackid': dbus.ObjectPath(
+                                         "/org/mpris/MediaPlayer2/"
+                                         "TrackList/NoTrack",
+                                         variant_level=1),
                                      'mpris:length': 0,
                                      'mpris:artUrl': "",
                                      'xesam:title': "",
                                      'xesam:album': "",
                                      'xesam:artist': ""
                                  }, signature="sv"),
-                                 "Volume": 0, "Position": 0, "MinimumRate": 1.0, "MaximumRate": 1.0,
-                                 "CanGoNext": True, "CanGoPrevious": True, "CanPlay": True, "CanPause": True,
-                                 "CanSeek": True, "CanControl": True}
+                                 "Volume": 0,
+                                 "Position": 0,
+                                 "MinimumRate": 1.0,
+                                 "MaximumRate": 1.0,
+                                 "CanGoNext": True,
+                                 "CanGoPrevious": True,
+                                 "CanPlay": True,
+                                 "CanPause": True,
+                                 "CanSeek": True,
+                                 "CanControl": True}
         self._last_track_name = ""
 
         bus = dbus.SessionBus()
@@ -59,22 +80,26 @@ class MPRIS(dbus.service.Object):
         self.tick_timer = threading.Thread(target=self._timer_start)
         self.tick_timer.start()
 
-    @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="",
+                         out_signature="")
     def Raise(self):
-        self.driver.raiseWindow()
+        self.driver.raise_window()
 
-    @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="",
+                         out_signature="")
     def Quit(self):
         self.driver.quit()
         self.quit = True
         sys.exit(0)
 
     # Properties
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE, in_signature='ss', out_signature='v')
+    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
+                         in_signature='ss', out_signature='v')
     def Get(self, interface_name, property_name):
         return self.GetAll(interface_name)[property_name]
 
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE, in_signature='s', out_signature='a{sv}')
+    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
+                         in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface_name):
         if interface_name == BASE_IFACE:
             return self.baseproperties
@@ -86,7 +111,8 @@ class MPRIS(dbus.service.Object):
                 'The Foo object does not implement the %s interface'
                 % interface_name)
 
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE, in_signature='ssv')
+    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
+                         in_signature='ssv')
     def Set(self, interface_name, property_name, new_value):
         if interface_name == BASE_IFACE:
             self._set_base_property(property_name, new_value)
@@ -95,58 +121,70 @@ class MPRIS(dbus.service.Object):
         # validate the property name and value, update internal state…
         self.PropertiesChanged(interface_name, {property_name: new_value}, [])
 
-    @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE, signature='sa{sv}as')
+    @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE,
+                         signature='sa{sv}as')
     def PropertiesChanged(self, interface_name, changed_properties,
                           invalidated_properties):
         pass
 
     # Player controls
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
+                         out_signature="")
     def Next(self):
         self.driver.next()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
+                         out_signature="")
     def Previous(self):
         self.driver.previous()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
+                         out_signature="")
     def Pause(self):
         self.driver.pause()
         self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Paused"}, [])
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
+                         out_signature="")
     def PlayPause(self):
-        if self.driver.isPlaying():
+        if self.driver.is_playing():
             self.Pause()
         else:
             self.Play()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
+                         out_signature="")
     def Stop(self):
         self.Pause()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="", out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
+                         out_signature="")
     def Play(self):
-        if not self.driver.CanPlay():
+        if not self.driver.can_play():
             return
 
         self.driver.play()
-        self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Playing"}, [])
+        self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Playing"},
+                               [])
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='x', out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='x',
+                         out_signature="")
     def Seek(self, offset):
-        self.SetPosition("", self.driver.currentTrackProgress() + offset)
+        self.SetPosition("", self.driver.current_track_progress() + offset)
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='ox', out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='ox',
+                         out_signature="")
     def SetPosition(self, trackid, position):
         position = int(position)
-        if not self.driver.CanPlay() or position < 0 or position > self.driver.currentTrackDuration():
+        if not self.driver.can_play() or position < 0 or \
+                position > self.driver.current_track_duration():
             return
-        self.driver.setPosition(position)
+        self.driver.set_position(position)
         self.PropertiesChanged(PLAYER_IFACE, {"Position": position}, [])
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='s', out_signature="")
+    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='s',
+                         out_signature="")
     def OpenUri(self, uri):
         # TODO
         return None
@@ -155,15 +193,15 @@ class MPRIS(dbus.service.Object):
         if name not in ["Fullscreen"]:
             return
         if name == "Fullscreen" and value is True:
-            self.driver.setFullscreen()
+            self.driver.set_fullscreen()
         self.baseproperties[name] = value
 
     def _set_player_property(self, name, value):
         if name not in ["Loopstatus", "Rate", "Shuffle", "Volume"]:
             return
         if name == "Shuffle":
-            if value != self.driver.isShuffle():
-                self.driver.toggleShuffle()
+            if value != self.driver.is_shuffle():
+                self.driver.toggle_shuffle()
         self.playerproperties[name] = value
 
     def _update_tick(self):
@@ -171,32 +209,35 @@ class MPRIS(dbus.service.Object):
             print("Tick")
         changed = {}
 
-        curr_title = self.driver.currentTrackTitle()
+        curr_title = self.driver.current_track_title()
 
         if self._last_track_name != curr_title:
             self._last_track_name = curr_title
-            duration = self.driver.currentTrackDuration()
+            duration = self.driver.current_track_duration()
             self.playerproperties["Metadata"] = dbus.Dictionary({
-                'mpris:trackid': dbus.ObjectPath('/org/mpris/MediaPlayer2/TrackList/' + str(duration), variant_level=1),
+                'mpris:trackid': dbus.ObjectPath(
+                    '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
+                    variant_level=1),
                 'mpris:length': duration,
-                'mpris:artUrl': self.driver.currentTrackImage(),
+                'mpris:artUrl': self.driver.current_track_image(),
                 'xesam:title': curr_title,
-                'xesam:album': self.driver.currentLocation(),
-                'xesam:artist': self.driver.currentTrackArtists()
+                'xesam:album': self.driver.current_location(),
+                'xesam:artist': self.driver.current_track_artists()
             }, signature="sv")
             changed["Metadata"] = self.playerproperties["Metadata"]
 
-        canplay = self.driver.CanPlay()
+        canplay = self.driver.can_play()
         if self.playerproperties["CanPlay"] != canplay:
             self.playerproperties["CanPlay"] = canplay
             changed["CanPlay"] = canplay
 
-        state = ("Playing" if self.driver.isPlaying() else "Paused") if canplay else "Stopped"
+        state = ("Playing" if self.driver.is_playing() else "Paused") \
+            if canplay else "Stopped"
         if self.playerproperties["PlaybackStatus"] != state:
             self.playerproperties["PlaybackStatus"] = state
             changed["PlaybackStatus"] = state
 
-        position = self.driver.currentTrackProgress()
+        position = self.driver.current_track_progress()
         if self.playerproperties["Position"] != position:
             self.playerproperties["Position"] = position
             changed["Position"] = position
@@ -209,7 +250,7 @@ class MPRIS(dbus.service.Object):
             print("Reduced Tick")
         changed = {}
 
-        isshuffle = self.driver.isShuffle()
+        isshuffle = self.driver.is_shuffle()
         if self.playerproperties["Shuffle"] != isshuffle:
             self.playerproperties["Shuffle"] = isshuffle
             changed["Shuffle"] = isshuffle
@@ -238,7 +279,7 @@ class MPRIS(dbus.service.Object):
                 print("Chrome connection refused. Quitting")
                 self.Quit()
 
-            except:
+            except Exception:
                 print("Update error: ", traceback.format_exc())
 
             time.sleep(5)
