@@ -15,10 +15,8 @@ import threading
 import time
 import traceback
 
-import dbus
-import dbus.service
-from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
+from pydbus import SessionBus
 from selenium.common.exceptions import WebDriverException
 
 import tidal_chrome.tidal_chrome_driver
@@ -29,7 +27,80 @@ PLAYER_IFACE = "org.mpris.MediaPlayer2.Player"
 BUS_NAME = "org.mpris.MediaPlayer2.tidal-chrome"
 
 
-class MPRIS(dbus.service.Object):
+class MPRIS(object):
+    """
+<node>
+    <interface name="org.freedesktop.DBus.Properties">
+        <method name="Get">
+            <arg type="s" name="interface_name" direction="in"/>
+            <arg type="s" name="property_name" direction="in"/>
+            <arg type="v" name="value" direction="out"/>
+        </method>
+        <method name="GetAll">
+            <arg type="s" name="interface_name" direction="in"/>
+            <arg type="a{sv}" name="properties" direction="out"/>
+        </method>
+        <method name="Set">
+            <arg type="s" name="interface_name" direction="in"/>
+            <arg type="s" name="property_name" direction="in"/>
+            <arg type="v" name="value" direction="in"/>
+        </method>
+        <signal name="PropertiesChanged">
+            <arg type="s" name="interface_name"/>
+            <arg type="a{sv}" name="changed_properties"/>
+            <arg type="as" name="invalidated_properties"/>
+        </signal>
+    </interface>
+    <interface name="org.mpris.MediaPlayer2">
+        <method name="Raise"/>
+        <method name="Quit"/>
+        <property type="b" name="CanQuit" access="read"/>
+        <property type="b" name="CanRaise" access="read"/>
+        <property type="b" name="HasTrackList" access="read"/>
+        <property type="s" name="Identity" access="read"/>
+        <property type="s" name="DesktopEntry" access="read"/>
+        <property type="as" name="SupportedUriSchemes" access="read"/>
+        <property type="as" name="SupportedMimeTypes" access="read"/>
+    </interface>
+    <interface name="org.mpris.MediaPlayer2.Player">
+        <method name="Next"/>
+        <method name="Previous"/>
+        <method name="Pause"/>
+        <method name="PlayPause"/>
+        <method name="Stop"/>
+        <method name="Play"/>
+        <method name="Seek">
+            <arg type="x" name="Offset" direction="in"/>
+        </method>
+        <method name="SetPosition">
+            <arg type="o" name="TrackId" direction="in"/>
+            <arg type="x" name="Position" direction="in"/>
+        </method>
+        <method name="OpenUri">
+            <arg type="s" name="Uri" direction="in"/>
+        </method>
+        <signal name="Seeked">
+            <arg type="x" name="Position"/>
+        </signal>
+        <property type="s" name="PlaybackStatus" access="read"/>
+        <property type="s" name="LoopStatus" access="readwrite"/>
+        <property type="d" name="Rate" access="readwrite"/>
+        <property type="b" name="Shuffle" access="readwrite"/>
+        <property type="a{sv}" name="Metadata" access="read"/>
+        <property type="d" name="Volume" access="readwrite"/>
+        <property type="x" name="Position" access="read"/>
+        <property type="d" name="MinimumRate" access="read"/>
+        <property type="d" name="MaximumRate" access="read"/>
+        <property type="b" name="CanGoNext" access="read"/>
+        <property type="b" name="CanGoPrevious" access="read"/>
+        <property type="b" name="CanPlay" access="read"/>
+        <property type="b" name="CanPause" access="read"/>
+        <property type="b" name="CanSeek" access="read"/>
+        <property type="b" name="CanControl" access="read"/>
+    </interface>
+</node>
+    """
+
     def __init__(self, isdebug):
         self.isdebug = isdebug
         self.quit = False
@@ -48,17 +119,14 @@ class MPRIS(dbus.service.Object):
                                  "LoopStatus": "None",
                                  "Rate": 1.0,
                                  "Shuffle": False,
-                                 "Metadata": dbus.Dictionary({
-                                     'mpris:trackid': dbus.ObjectPath(
-                                         "/org/mpris/MediaPlayer2/"
-                                         "TrackList/NoTrack",
-                                         variant_level=1),
+                                 "Metadata": {
+                                     'mpris:trackid': "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                      'mpris:length': 0,
                                      'mpris:artUrl': "",
                                      'xesam:title': "",
                                      'xesam:album': "",
                                      'xesam:artist': ""
-                                 }, signature="sv"),
+                                 },
                                  "Volume": 0,
                                  "Position": 0,
                                  "MinimumRate": 1.0,
@@ -71,35 +139,22 @@ class MPRIS(dbus.service.Object):
                                  "CanControl": True}
         self._last_track_name = ""
 
-        bus = dbus.SessionBus()
-        bus.request_name(BUS_NAME)
-        bus_name = dbus.service.BusName(BUS_NAME, bus=bus)
-        dbus.service.Object.__init__(self, bus_name, OPATH)
-
         self._timer_i = 0
         self.tick_timer = threading.Thread(target=self._timer_start)
         self.tick_timer.start()
 
-    @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="",
-                         out_signature="")
     def Raise(self):
         self.driver.raise_window()
 
-    @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="",
-                         out_signature="")
     def Quit(self):
         self.driver.quit()
         self.quit = True
         sys.exit(0)
 
     # Properties
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='ss', out_signature='v')
     def Get(self, interface_name, property_name):
         return self.GetAll(interface_name)[property_name]
 
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface_name):
         if interface_name == BASE_IFACE:
             return self.baseproperties
@@ -111,8 +166,6 @@ class MPRIS(dbus.service.Object):
                 'The Foo object does not implement the %s interface'
                 % interface_name)
 
-    @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
-                         in_signature='ssv')
     def Set(self, interface_name, property_name, new_value):
         if interface_name == BASE_IFACE:
             self._set_base_property(property_name, new_value)
@@ -121,45 +174,31 @@ class MPRIS(dbus.service.Object):
         # validate the property name and value, update internal state…
         self.PropertiesChanged(interface_name, {property_name: new_value}, [])
 
-    @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE,
-                         signature='sa{sv}as')
     def PropertiesChanged(self, interface_name, changed_properties,
                           invalidated_properties):
         pass
 
     # Player controls
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
-                         out_signature="")
     def Next(self):
         self.driver.next()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
-                         out_signature="")
     def Previous(self):
         self.driver.previous()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
-                         out_signature="")
     def Pause(self):
         self.driver.pause()
         self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Paused"}, [])
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
-                         out_signature="")
     def PlayPause(self):
         if self.driver.is_playing():
             self.Pause()
         else:
             self.Play()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
-                         out_signature="")
     def Stop(self):
         self.Pause()
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
-                         out_signature="")
     def Play(self):
         if not self.driver.can_play():
             return
@@ -168,13 +207,9 @@ class MPRIS(dbus.service.Object):
         self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Playing"},
                                [])
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='x',
-                         out_signature="")
     def Seek(self, offset):
         self.SetPosition("", self.driver.current_track_progress() + offset)
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='ox',
-                         out_signature="")
     def SetPosition(self, trackid, position):
         position = int(position)
         if not self.driver.can_play() or position < 0 or \
@@ -183,8 +218,6 @@ class MPRIS(dbus.service.Object):
         self.driver.set_position(position)
         self.PropertiesChanged(PLAYER_IFACE, {"Position": position}, [])
 
-    @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='s',
-                         out_signature="")
     def OpenUri(self, uri):
         # TODO
         return None
@@ -214,16 +247,14 @@ class MPRIS(dbus.service.Object):
         if self._last_track_name != curr_title:
             self._last_track_name = curr_title
             duration = self.driver.current_track_duration()
-            self.playerproperties["Metadata"] = dbus.Dictionary({
-                'mpris:trackid': dbus.ObjectPath(
-                    '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
-                    variant_level=1),
+            self.playerproperties["Metadata"] = {
+                'mpris:trackid': '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
                 'mpris:length': duration,
                 'mpris:artUrl': self.driver.current_track_image(),
                 'xesam:title': curr_title,
                 'xesam:album': self.driver.current_location(),
                 'xesam:artist': self.driver.current_track_artists()
-            }, signature="sv")
+            }
             changed["Metadata"] = self.playerproperties["Metadata"]
 
         canplay = self.driver.can_play()
@@ -287,13 +318,18 @@ class MPRIS(dbus.service.Object):
 
 def run(isdebug=False):
     print("TIDAL-Chrome by SERVCUBED, isdebug=" + str(isdebug))
-    DBusGMainLoop(set_as_default=True)
     loop = GLib.MainLoop()
 
     a = None
 
     try:
         a = MPRIS(isdebug)
+        print("running")
+        bus = SessionBus()
+        bus.request_name(BUS_NAME)
+        bus.register_object(OPATH, a)
+        # bus.publish(BUS_NAME, a)
+        print("running")
         loop.run()
     except KeyboardInterrupt:
         print("Keyboard interrupt")
