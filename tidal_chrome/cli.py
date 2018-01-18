@@ -42,7 +42,7 @@ class MPRIS(dbus.service.Object):
                                "HasTrackList": False,
                                "DesktopEntry": "tidal-google-chrome",
                                "Identity": "Tidal-Chrome API bridge",
-                               "SupportedUriSchemes": [''],
+                               "SupportedUriSchemes": ['tidal'],
                                "SupportedMimeTypes": ['']}
 
         self.playerproperties = {"PlaybackStatus": "Stopped",
@@ -265,8 +265,7 @@ class MPRIS(dbus.service.Object):
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='s',
                          out_signature="")
     def OpenUri(self, uri):
-        # TODO
-        return None
+        self.driver.open_uri(uri)
 
     def _set_base_property(self, name, value):
         if name not in ["Fullscreen"]:

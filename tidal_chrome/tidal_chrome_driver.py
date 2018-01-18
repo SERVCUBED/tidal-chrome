@@ -123,5 +123,14 @@ class Driver:
     def set_fullscreen(self):
         return self.driver.fullscreen_window()
 
+    def open_uri(self, uri):
+        if not uri.startswith("tidal://"):
+            return
+
+        el = self.driver.find_elements_by_xpath("//*[@id=\"main\"]//a[1]")[-1]
+        self.driver.execute_script(
+            "arguments[0].href=arguments[1];arguments[0].click();", el,
+            uri.replace("tidal://", "/"))
+
     def quit(self):
         self.driver.quit()
