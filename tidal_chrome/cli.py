@@ -163,6 +163,7 @@ class MPRIS(dbus.service.Object):
         <property type="b" name="CanRaise" access="read"/>
         <property type="b" name="HasTrackList" access="read"/>
         <property type="s" name="Identity" access="read"/>
+        <property type="b" name="Fullscreen" access="readwrite"/>
         <property type="s" name="DesktopEntry" access="read"/>
         <property type="as" name="SupportedUriSchemes" access="read"/>
         <property type="as" name="SupportedMimeTypes" access="read"/>
@@ -270,8 +271,8 @@ class MPRIS(dbus.service.Object):
     def _set_base_property(self, name, value):
         if name not in ["Fullscreen"]:
             return
-        if name == "Fullscreen" and value is True:
-            self.driver.set_fullscreen()
+        if name == "Fullscreen":
+            self.driver.set_fullscreen(value)
         self.baseproperties[name] = value
 
     def _set_player_property(self, name, value):

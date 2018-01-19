@@ -120,8 +120,13 @@ class Driver:
     def raise_window(self):
         return self.driver.switch_to.window(self.driver.current_window_handle)
 
-    def set_fullscreen(self):
-        return self.driver.fullscreen_window()
+    def set_fullscreen(self, value):
+        if value:
+            self.driver.fullscreen_window()
+            self.driver.execute_script("arguments[0].click();",
+                                       self.driver.
+                                       find_elements_by_class_name(
+                                           "js-maximize")[0])
 
     def open_uri(self, uri):
         if not uri.startswith("tidal://"):
