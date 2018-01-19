@@ -251,7 +251,13 @@ class MPRIS(dbus.service.Object):
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='x',
                          out_signature="")
     def Seek(self, offset):
-        self.SetPosition("", self.driver.current_track_progress() + offset)
+        position = self.driver.current_track_progress() + offset
+        self.SetPosition("", position)
+        self.Seeked(position)
+
+    @dbus.service.signal(dbus_interface=PLAYER_IFACE, signature='x')
+    def Seeked(self, position):
+        pass
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='ox',
                          out_signature="")
@@ -262,6 +268,7 @@ class MPRIS(dbus.service.Object):
             return
         self.driver.set_position(position)
         self.PropertiesChanged(PLAYER_IFACE, {"Position": position}, [])
+        self.Seeked(position)
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature='s',
                          out_signature="")
