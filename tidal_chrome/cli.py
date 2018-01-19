@@ -3,7 +3,7 @@
 # Tidal-Chrome MPRIS bridge
 
 # Author: SERVCUBED
-# License: GPL
+# License: AGPL
 
 # MPRIS Specification:
 #   https://specifications.freedesktop.org/mpris-spec/latest/

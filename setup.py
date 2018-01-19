@@ -10,7 +10,7 @@ setup(
     version=__version__,
     packages=['tidal_chrome'],
     url='https://github.com/SERVCUBED/tidal-chrome',
-    license='GPL',
+    license='AGPL',
     author='SERVCUBED',
     author_email='ben@servc.eu',
     description=__description__,

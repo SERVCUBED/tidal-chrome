@@ -1,6 +1,6 @@
 # Part of the Tidal-Chrome MPRIS bridge
 # Author: SERVCUBED 2018-
-# License: GPL
+# License: AGPL
 
 import os
 
