@@ -38,7 +38,7 @@ class MPRIS(dbus.service.Object):
         self.baseproperties = {"CanQuit": True,
                                "Fullscreen": False,
                                "CanSetFullscreen": True,
-                               "CanRaise": False,
+                               "CanRaise": True,
                                "HasTrackList": False,
                                "DesktopEntry": "tidal-google-chrome",
                                "Identity": "Tidal-Chrome API bridge",
