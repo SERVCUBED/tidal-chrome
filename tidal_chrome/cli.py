@@ -78,7 +78,7 @@ class MPRIS(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, OPATH)
 
         self._timer_i = 0
-        self.tick_timer = threading.Thread(target=self._timer_start)
+        self.tick_timer = threading.Thread(target=self.__timer_start)
         self.tick_timer.start()
 
     @dbus.service.method(dbus_interface=BASE_IFACE, in_signature="",
@@ -109,16 +109,16 @@ class MPRIS(dbus.service.Object):
         else:
             raise dbus.exceptions.DBusException(
                 'com.example.UnknownInterface',
-                'The Foo object does not implement the %s interface'
+                'The tidal-chrome object does not implement the %s interface'
                 % interface_name)
 
     @dbus.service.method(dbus_interface=dbus.PROPERTIES_IFACE,
                          in_signature='ssv')
     def Set(self, interface_name, property_name, new_value):
         if interface_name == BASE_IFACE:
-            self._set_base_property(property_name, new_value)
+            self.__set_base_property(property_name, new_value)
         elif interface_name == PLAYER_IFACE:
-            self._set_player_property(property_name, new_value)
+            self.__set_player_property(property_name, new_value)
         # validate the property name and value, update internal state…
         self.PropertiesChanged(interface_name, {property_name: new_value}, [])
 
@@ -275,14 +275,14 @@ class MPRIS(dbus.service.Object):
     def OpenUri(self, uri):
         self.driver.open_uri(uri)
 
-    def _set_base_property(self, name, value):
+    def __set_base_property(self, name, value):
         if name not in ["Fullscreen"]:
             return
         if name == "Fullscreen":
             self.driver.set_fullscreen(value)
         self.baseproperties[name] = value
 
-    def _set_player_property(self, name, value):
+    def __set_player_property(self, name, value):
         if name not in ["Loopstatus", "Rate", "Shuffle", "Volume"]:
             return
         if name == "Shuffle":
@@ -290,7 +290,7 @@ class MPRIS(dbus.service.Object):
                 self.driver.toggle_shuffle()
         self.playerproperties[name] = value
 
-    def _update_tick(self):
+    def __update_tick(self):
         if self.isdebug:
             print("Tick")
         changed = {}
@@ -331,7 +331,7 @@ class MPRIS(dbus.service.Object):
         if len(changed) > 0:
             self.PropertiesChanged(PLAYER_IFACE, changed, [])
 
-    def _update_reduced_tick(self):
+    def __update_reduced_tick(self):
         if self.isdebug:
             print("Reduced Tick")
         changed = {}
@@ -344,16 +344,16 @@ class MPRIS(dbus.service.Object):
         if len(changed) > 0:
             self.PropertiesChanged(PLAYER_IFACE, changed, [])
 
-    def _timer_start(self):
+    def __timer_start(self):
         time.sleep(10)
         while not self.quit:
             try:
-                self._update_tick()
+                self.__update_tick()
 
                 self._timer_i += 1
                 if self._timer_i >= 5:
                     self._timer_i = 0
-                    self._update_reduced_tick()
+                    self.__update_reduced_tick()
 
             except WebDriverException as e:
                 if e.msg == "chrome not reachable":
