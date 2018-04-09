@@ -16,6 +16,3 @@ Install Google Chrome and Chrome's flash player plugin from your repositories fi
 1. Launch `TIDAL` in your application launcher or run `tidal-chrome` in your favourite terminal.
 2. A new Chrome window will be opened. Sign in to TIDAL.
 3. Play something. You may need to follow through on the prompts to install/run flash.
-
-Currently, the only way to quit completely (other than `pkill`) is to Ctrl+C on the terminal window and wait for 
-the running threads to break/quit. This can take up to 30 seconds (the length of the longest timer)
