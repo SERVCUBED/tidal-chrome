@@ -30,8 +30,9 @@ BUS_NAME = "org.mpris.MediaPlayer2.tidal-chrome"
 
 
 class MPRIS(dbus.service.Object):
-    def __init__(self, isdebug):
+    def __init__(self, isdebug, loop=None):
         self.isdebug = isdebug
+        self.loop = loop
         self.quit = False
         self.driver = tidal_chrome.tidal_chrome_driver.Driver()
 
@@ -91,6 +92,8 @@ class MPRIS(dbus.service.Object):
     def Quit(self):
         self.driver.quit()
         self.quit = True
+        if self.loop:
+            self.loop.quit()
         sys.exit(0)
 
     # Properties
@@ -356,7 +359,7 @@ class MPRIS(dbus.service.Object):
                     self._update_reduced_tick()
 
             except WebDriverException as e:
-                if e.msg == "chrome not reachable":
+                if "chrome not reachable" in e.msg:
                     print("Quitting")
                     self.Quit()
                 else:
@@ -379,7 +382,7 @@ def run(isdebug=False):
     a = None
 
     try:
-        a = MPRIS(isdebug)
+        a = MPRIS(isdebug, loop)
         loop.run()
     except KeyboardInterrupt:
         print("Keyboard interrupt")
