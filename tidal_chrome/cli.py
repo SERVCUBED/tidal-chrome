@@ -298,23 +298,6 @@ class MPRIS(dbus.service.Object):
             print("Tick")
         changed = {}
 
-        curr_title = self.driver.current_track_title()
-
-        if self._last_track_name != curr_title:
-            self._last_track_name = curr_title
-            duration = self.driver.current_track_duration()
-            self.playerproperties["Metadata"] = dbus.Dictionary({
-                'mpris:trackid': dbus.ObjectPath(
-                    '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
-                    variant_level=1),
-                'mpris:length': duration,
-                'mpris:artUrl': self.driver.current_track_image(),
-                'xesam:title': curr_title,
-                'xesam:album': self.driver.current_location(),
-                'xesam:artist': self.driver.current_track_artists()
-            }, signature="sv")
-            changed["Metadata"] = self.playerproperties["Metadata"]
-
         canplay = self.driver.can_play()
         if self.playerproperties["CanPlay"] != canplay:
             self.playerproperties["CanPlay"] = canplay
@@ -326,10 +309,43 @@ class MPRIS(dbus.service.Object):
             self.playerproperties["PlaybackStatus"] = state
             changed["PlaybackStatus"] = state
 
-        position = self.driver.current_track_progress()
-        if self.playerproperties["Position"] != position:
-            self.playerproperties["Position"] = position
-            changed["Position"] = position
+        if canplay:
+            curr_title = self.driver.current_track_title()
+
+            if self._last_track_name != curr_title:
+                self._last_track_name = curr_title
+                duration = self.driver.current_track_duration()
+                self.playerproperties["Metadata"] = dbus.Dictionary({
+                    'mpris:trackid': dbus.ObjectPath(
+                        '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
+                        variant_level=1),
+                    'mpris:length': duration,
+                    'mpris:artUrl': self.driver.current_track_image(),
+                    'xesam:title': curr_title,
+                    'xesam:album': "",
+                    'xesam:artist': self.driver.current_track_artists()
+                }, signature="sv")
+                changed["Metadata"] = self.playerproperties["Metadata"]
+
+            position = self.driver.current_track_progress()
+            if self.playerproperties["Position"] != position:
+                self.playerproperties["Position"] = position
+                changed["Position"] = position
+
+        elif self._last_track_name != "":
+            self._last_track_name = ""
+            self.playerproperties["Metadata"] = dbus.Dictionary({
+                'mpris:trackid': dbus.ObjectPath(
+                    '/org/mpris/MediaPlayer2/TrackList/0',
+                    variant_level=1),
+                'mpris:length': 0,
+                'mpris:artUrl': "",
+                'xesam:title': 0,
+                'xesam:album': "",
+                'xesam:artist': ""
+            }, signature="sv")
+            changed["Metadata"] = self.playerproperties["Metadata"]
+            changed["Position"] = self.playerproperties["Position"] = 0
 
         if len(changed) > 0:
             self.PropertiesChanged(PLAYER_IFACE, changed, [])
@@ -339,10 +355,13 @@ class MPRIS(dbus.service.Object):
             print("Reduced Tick")
         changed = {}
 
-        isshuffle = self.driver.is_shuffle()
-        if self.playerproperties["Shuffle"] != isshuffle:
-            self.playerproperties["Shuffle"] = isshuffle
-            changed["Shuffle"] = isshuffle
+        if not self.playerproperties["CanPlay"] and not self.playerproperties["Shuffle"]:
+            self.playerproperties["Shuffle"] = changed["Shuffle"] = False
+        else:
+            isshuffle = self.driver.is_shuffle()
+            if self.playerproperties["Shuffle"] != isshuffle:
+                self.playerproperties["Shuffle"] = isshuffle
+                changed["Shuffle"] = isshuffle
 
         if len(changed) > 0:
             self.PropertiesChanged(PLAYER_IFACE, changed, [])

@@ -40,9 +40,8 @@ class Driver:
         Get whether the player can play, pause, seek.
         :return: True if the player can play, pause, seek
         """
-        return "has-media" in \
-               self._driver.find_element_by_class_name("grid"). \
-               get_property("classList")
+        return "hasPlayer" in ''.join(self._driver.find_elements_by_xpath(
+            '//div[contains(@class,"mainLayout")]/div[1]')[0].get_property("classList"))
 
     def play(self) -> None:
         """
@@ -50,9 +49,9 @@ class Driver:
         :return: Nothing
         """
         self._driver.execute_script("arguments[0].click();",
-                                    self._driver.
-                                    find_elements_by_class_name("js-play")
-                                    [-1])
+                                    self._driver.find_elements_by_xpath(
+                                        '//div[contains(@class,"playbackControls")]/button[@title="Play"]')
+                                    [0])
 
     def pause(self) -> None:
         """
@@ -60,9 +59,9 @@ class Driver:
         :return: Nothing
         """
         self._driver.execute_script("arguments[0].click();",
-                                    self._driver.
-                                    find_elements_by_class_name("js-pause")
-                                    [-1])
+                                    self._driver.find_elements_by_xpath(
+                                        '//button[@title="Pause"]')
+                                    [0])
 
     def next(self) -> None:
         """
@@ -70,9 +69,9 @@ class Driver:
         :return: Nothing
         """
         self._driver.execute_script("arguments[0].click();",
-                                    self._driver.
-                                    find_elements_by_class_name("js-next")
-                                    [-1])
+                                    self._driver.find_elements_by_xpath(
+                                        '//button[@title="Next"]')
+                                    [0])
 
     def previous(self) -> None:
         """
@@ -80,18 +79,17 @@ class Driver:
         :return: Nothing
         """
         self._driver.execute_script("arguments[0].click();",
-                                    self._driver.
-                                    find_elements_by_class_name("js-previous")
-                                    [-1])
+                                    self._driver.find_elements_by_xpath(
+                                        '//button[@title="Previous"]')
+                                    [0])
 
     def is_playing(self) -> bool:
         """
         Gets whether the player is currently playing.
         :return: True if the player is currently playing.
         """
-        return "play-controls__main-button--playing" in \
-            self._driver.find_element_by_class_name("js-main-button"). \
-            get_property("classList")
+        return self._driver.find_elements_by_xpath(
+            '//button[contains(@class,"playbackToggle")]')[0].get_property("title") == "Pause"
 
     def is_shuffle(self) -> bool:
         """
@@ -99,7 +97,7 @@ class Driver:
         :return: True if shuffle is currently enabled.
         """
         return "active" in \
-            self._driver.find_element_by_class_name("js-shuffle"). \
+            self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("children")[0]. \
             get_property("classList")
 
     def toggle_shuffle(self) -> None:
@@ -108,9 +106,9 @@ class Driver:
         :return: Nothing
         """
         self._driver.execute_script("arguments[0].click();",
-                                    self._driver.
-                                    find_elements_by_class_name("js-shuffle")
-                                    [-1])
+                                    self._driver.find_elements_by_xpath(
+                                        '//button[@title="Shuffle"]')
+                                    [0])
 
     def current_track_title(self) -> str:
         """
@@ -118,8 +116,8 @@ class Driver:
         :return: String of the current track title.
         """
         return self._driver. \
-            find_element_by_class_name("now-playing__metadata__title"). \
-            get_property("title")
+            find_elements_by_xpath('//div[contains(@class,"mediaInformation")]/span[1]/a')[0]. \
+            get_property("innerHTML")
 
     def current_track_artists(self) -> str:
         """
@@ -128,9 +126,9 @@ class Driver:
         """
         return ", ".join([x.get_property("title") for x in
                           self._driver.
-                         find_element_by_class_name(
-                              "now-playing__metadata__artist").
-                         find_elements_by_tag_name('a')])
+                         find_elements_by_xpath(
+                              '//div[contains(@class,"leftColumn")]/div[contains(@class,"mediaInformation")]/span[2]/a')
+                          ])
 
     def current_track_image(self) -> str:
         """
@@ -138,7 +136,7 @@ class Driver:
         :return: A string containing the album art URL.
         """
         return self._driver. \
-            find_element_by_class_name("js-footer-player-image"). \
+            find_elements_by_xpath('//figure[contains(@class,"mediaImagery")]/img[contains(@class,"image")]')[0]. \
             get_property("src")
 
     def current_track_progress(self) -> int:
@@ -146,7 +144,7 @@ class Driver:
         Gets the progress of the current track in microseconds.
         :return: The current track progress in microseconds.
         """
-        t = self._driver.find_element_by_class_name("js-progress"). \
+        t = self._driver.find_elements_by_xpath('//time[contains(@class,"currentTime")]')[0]. \
             get_property("innerHTML").split(":")
         return int(t[0]) * 60 + int(t[1]) * 10000000  # Microseconds
 
@@ -155,20 +153,9 @@ class Driver:
         Gets the duration of the current track in microseconds.
         :return: The current track duration in microseconds.
         """
-        t = self._driver.find_element_by_class_name("js-duration"). \
+        t = self._driver.find_elements_by_xpath('//time[contains(@class,"duration")]')[0]. \
             get_property("innerHTML").split(":")
         return int(t[0]) * 60 + int(t[1]) * 10000000  # Microseconds
-
-    def current_location(self) -> str:
-        """
-        Gets the currently selected sidebar item.
-        :return: The currently selected sidebar item.
-        """
-        link = self._driver.find_elements_by_class_name("menu__link--active")
-        if len(link) == 0:
-            return ""
-        return link[0].find_element_by_tag_name("span"). \
-            get_property("innerHTML")
 
     def set_position(self, position) -> None:
         """
@@ -177,8 +164,8 @@ class Driver:
         current_track_duration().
         :return: Nothing
         """
-        el = self._driver. \
-            find_element_by_class_name("progressbar__interaction-layer")
+        el = self._driver.find_elements_by_xpath(
+            '//div[contains(@class,"progressBarWrapper")]/div/div[contains(@class,"interactionLayer")]')[0]
         clickxpos = position * el.size["width"] / self.current_track_duration()
 
         action = webdriver.ActionChains(self._driver)
@@ -203,8 +190,8 @@ class Driver:
             self._driver.fullscreen_window()
             self._driver.execute_script("arguments[0].click();",
                                         self._driver.
-                                        find_elements_by_class_name(
-                                             "js-maximize")[0])
+                                        find_elements_by_xpath(
+                                            '//div[contains(@class,"overlayClickable")]')[0])
 
     def open_uri(self, uri) -> None:
         """
