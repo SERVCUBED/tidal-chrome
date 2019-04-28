@@ -16,3 +16,11 @@ Install Google Chrome and Chrome's flash player plugin from your repositories fi
 1. Launch `TIDAL` in your application launcher or run `tidal-chrome` in your favourite terminal.
 2. A new Chrome window will be opened. Sign in to TIDAL.
 3. Play something. You may need to follow through on the prompts to install/run flash.
+
+
+# Troubleshooting
+
+First, ensure you have chromedriver installed. The `chromedriver_installer` pip package must be manually installed. 
+
+If the TIDAL webpage is stuck at the loading image, then try clearing the cache. The easiest way to do this is to 
+close all app windows and delete the user data folder `~/.config/tidal-google-chrome`.

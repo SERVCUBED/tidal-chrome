@@ -378,7 +378,7 @@ class MPRIS(dbus.service.Object):
                     self.__update_reduced_tick()
 
             except WebDriverException as e:
-                if "chrome not reachable" in e.msg:
+                if "chrome not reachable" in e.msg or "invalid session id" in e.msg:
                     print("Quitting")
                     self.Quit()
                 else:
