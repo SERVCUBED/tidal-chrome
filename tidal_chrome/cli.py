@@ -55,14 +55,14 @@ class MPRIS(dbus.service.Object):
                                          "/org/mpris/MediaPlayer2/"
                                          "TrackList/NoTrack",
                                          variant_level=1),
-                                     'mpris:length': 0,
+                                     'mpris:length': dbus.Int64(0),
                                      'mpris:artUrl': "",
                                      'xesam:title': "",
                                      'xesam:album': "",
-                                     'xesam:artist': ""
+                                     'xesam:artist': dbus.Array([], signature="s")
                                  }, signature="sv"),
-                                 "Volume": 0,
-                                 "Position": 0,
+                                 "Volume": 1.0,
+                                 "Position": dbus.Int64(0),
                                  "MinimumRate": 1.0,
                                  "MaximumRate": 1.0,
                                  "CanGoNext": True,
@@ -319,18 +319,17 @@ class MPRIS(dbus.service.Object):
                     'mpris:trackid': dbus.ObjectPath(
                         '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
                         variant_level=1),
-                    'mpris:length': duration,
+                    'mpris:length': dbus.Int64(duration),
                     'mpris:artUrl': self.driver.current_track_image(),
                     'xesam:title': curr_title,
                     'xesam:album': "",
-                    'xesam:artist': self.driver.current_track_artists()
+                    'xesam:artist': dbus.Array(self.driver.current_track_artists(),signature="s")
                 }, signature="sv")
                 changed["Metadata"] = self.playerproperties["Metadata"]
 
             position = self.driver.current_track_progress()
             if self.playerproperties["Position"] != position:
-                self.playerproperties["Position"] = position
-                changed["Position"] = position
+                changed["Position"] = self.playerproperties["Position"] = dbus.Int64(position)
 
         elif self._last_track_name != "":
             self._last_track_name = ""
@@ -338,14 +337,14 @@ class MPRIS(dbus.service.Object):
                 'mpris:trackid': dbus.ObjectPath(
                     '/org/mpris/MediaPlayer2/TrackList/0',
                     variant_level=1),
-                'mpris:length': 0,
+                'mpris:length': dbus.Int64(0),
                 'mpris:artUrl': "",
                 'xesam:title': 0,
                 'xesam:album': "",
-                'xesam:artist': ""
+                'xesam:artist': dbus.Array([], signature="s")
             }, signature="sv")
             changed["Metadata"] = self.playerproperties["Metadata"]
-            changed["Position"] = self.playerproperties["Position"] = 0
+            changed["Position"] = self.playerproperties["Position"] = dbus.Int64(0)
 
         if len(changed) > 0:
             self.PropertiesChanged(PLAYER_IFACE, changed, [])

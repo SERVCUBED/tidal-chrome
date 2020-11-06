@@ -119,16 +119,16 @@ class Driver:
             find_elements_by_xpath('//div[contains(@class,"mediaInformation")]/span[1]/a')[0]. \
             get_property("innerHTML")
 
-    def current_track_artists(self) -> str:
+    def current_track_artists(self) -> list:
         """
         Gets a list of the current track artists, separated by ", ".
         :return: A string of the current track artists.
         """
-        return ", ".join([x.get_property("title") for x in
+        return [x.get_property("title") for x in
                           self._driver.
                          find_elements_by_xpath(
-                              '//div[contains(@class,"leftColumn")]/div[contains(@class,"mediaInformation")]/span[2]/a')
-                          ])
+                              '//div[contains(@class,"leftColumn")]/div/div[contains(@class,"mediaInformation")]/span[2]/a')
+                          ]
 
     def current_track_image(self) -> str:
         """
@@ -136,7 +136,7 @@ class Driver:
         :return: A string containing the album art URL.
         """
         return self._driver. \
-            find_elements_by_xpath('//figure[contains(@class,"mediaImagery")]/img[contains(@class,"image")]')[0]. \
+            find_elements_by_xpath('//figure[contains(@class,"mediaImagery")]/div/div/div/img[contains(@class,"image")]')[0]. \
             get_property("src")
 
     def current_track_progress(self) -> int:
