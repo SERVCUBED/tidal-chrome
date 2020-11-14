@@ -52,9 +52,8 @@ class MPRIS(dbus.service.Object):
                                  "Shuffle": False,
                                  "Metadata": dbus.Dictionary({
                                      'mpris:trackid': dbus.ObjectPath(
-                                         "/org/mpris/MediaPlayer2/"
-                                         "TrackList/NoTrack",
-                                         variant_level=1),
+                                         "/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                                         variant_level=0),
                                      'mpris:length': dbus.Int64(0),
                                      'mpris:artUrl': "",
                                      'xesam:title': "",
@@ -231,10 +230,8 @@ class MPRIS(dbus.service.Object):
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
                          out_signature="")
     def PlayPause(self):
-        if self.driver.is_playing():
-            self.Pause()
-        else:
-            self.Play()
+        self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Playing" if self.driver.play_pause() else "Paused"},
+                               [])
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
                          out_signature="")
@@ -318,7 +315,7 @@ class MPRIS(dbus.service.Object):
                 self.playerproperties["Metadata"] = dbus.Dictionary({
                     'mpris:trackid': dbus.ObjectPath(
                         '/org/mpris/MediaPlayer2/TrackList/' + str(duration),
-                        variant_level=1),
+                        variant_level=0),
                     'mpris:length': dbus.Int64(duration),
                     'mpris:artUrl': self.driver.current_track_image(),
                     'xesam:title': curr_title,
@@ -336,7 +333,7 @@ class MPRIS(dbus.service.Object):
             self.playerproperties["Metadata"] = dbus.Dictionary({
                 'mpris:trackid': dbus.ObjectPath(
                     '/org/mpris/MediaPlayer2/TrackList/0',
-                    variant_level=1),
+                    variant_level=0),
                 'mpris:length': dbus.Int64(0),
                 'mpris:artUrl': "",
                 'xesam:title': 0,
@@ -377,7 +374,7 @@ class MPRIS(dbus.service.Object):
                     self.__update_reduced_tick()
 
             except WebDriverException as e:
-                if "chrome not reachable" in e.msg or "invalid session id" in e.msg:
+                if "chrome not reachable" in e.msg or "invalid session id" in e.msg or "window already closed" in e.msg:
                     print("Quitting")
                     self.Quit()
                 else:
