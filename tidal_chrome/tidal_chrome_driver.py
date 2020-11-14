@@ -50,7 +50,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//div[contains(@class,"playbackControls")]/button[@title="Play"]')
+                                        '//button[contains(@class,"playback-controls")][@title="Play"]')
                                     [0])
 
     def pause(self) -> None:
@@ -60,7 +60,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[@title="Pause"]')
+                                        '//button[contains(@class,"playback-controls")][@title="Pause"]')
                                     [0])
 
     def next(self) -> None:
@@ -70,7 +70,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[@title="Next"]')
+                                        '//button[contains(@class,"playback-controls")][@title="Next"]')
                                     [0])
 
     def previous(self) -> None:
@@ -80,7 +80,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[@title="Previous"]')
+                                        '//button[contains(@class,"playback-controls")][@title="Previous"]')
                                     [0])
 
     def is_playing(self) -> bool:
