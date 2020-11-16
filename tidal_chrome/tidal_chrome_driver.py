@@ -5,7 +5,6 @@
 import os
 
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 
 
 class Driver:
@@ -18,17 +17,15 @@ class Driver:
         The browser's data directory is set to:
             ~/.config/tidal-google-chrome/
         """
-        chrome_options = Options()
+        chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("--disable-sync")
-        chrome_options.add_argument("user-data-dir=" +
-                                    os.path.
-                                    expanduser(
+        chrome_options.add_argument("--user-data-dir=" +
+                                    os.path.expanduser(
                                         "~/.config/tidal-google-chrome/"))
         chrome_options.add_argument("--app=https://listen.tidal.com/")
 
         print("Starting webdriver")
-        self._driver = webdriver.Chrome('chromedriver',
-                                        chrome_options=chrome_options)
+        self._driver = webdriver.Chrome('chromedriver', options=chrome_options)
 
         print("Waiting for load")
         self._driver.implicitly_wait(10)
@@ -109,7 +106,7 @@ class Driver:
         :return: True if shuffle is currently enabled.
         """
         return "active" in \
-            ''.join(self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("classList"))
+               ''.join(self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("classList"))
 
     def is_now_playing_maximised(self) -> bool:
         """
@@ -143,10 +140,10 @@ class Driver:
         :return: A string of the current track artists.
         """
         return [x.get_property("title") for x in
-                          self._driver.
-                         find_elements_by_xpath(
-                              '//div[contains(@class,"leftColumn")]/div/div[contains(@class,"mediaInformation")]/span[2]/a')
-                          ]
+                self._driver.
+                    find_elements_by_xpath(
+                    '//div[contains(@class,"leftColumn")]/div/div[contains(@class,"mediaInformation")]/span[2]/a')
+                ]
 
     def current_track_image(self) -> str:
         """
@@ -154,7 +151,8 @@ class Driver:
         :return: A string containing the album art URL.
         """
         return self._driver. \
-            find_elements_by_xpath('//figure[contains(@class,"mediaImagery")]/div/div/div/img[contains(@class,"image")]')[0]. \
+            find_elements_by_xpath(
+            '//figure[contains(@class,"mediaImagery")]/div/div/div/img[contains(@class,"image")]')[0]. \
             get_property("src")
 
     def current_track_progress(self) -> int:
