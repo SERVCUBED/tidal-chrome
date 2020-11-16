@@ -155,7 +155,7 @@ class Driver:
         """
         t = self._driver.find_elements_by_xpath('//time[contains(@class,"currentTime")]')[0]. \
             get_property("innerHTML").split(":")
-        return int(t[0]) * 60 + int(t[1]) * 10000000  # Microseconds
+        return (int(t[0]) * 60 + int(t[1])) * 1000000  # Microseconds
 
     def current_track_duration(self) -> int:
         """
@@ -164,7 +164,7 @@ class Driver:
         """
         t = self._driver.find_elements_by_xpath('//time[contains(@class,"duration")]')[0]. \
             get_property("innerHTML").split(":")
-        return int(t[0]) * 60 + int(t[1]) * 10000000  # Microseconds
+        return (int(t[0]) * 60 + int(t[1])) * 1000000  # Microseconds
 
     def set_position(self, position) -> None:
         """
