@@ -108,6 +108,12 @@ class Driver:
         return "active" in \
             ''.join(self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("classList"))
 
+    def is_now_playing_maximised(self) -> bool:
+        """
+        Gets whether the "Now Playing" section is fullscreen
+        :return True if the "Now Playing" section is fullscreen
+        """
+        return "visible" in ''.join(self._driver.find_element_by_id('nowPlaying').get_property("classList"))
 
     def toggle_shuffle(self) -> None:
         """
@@ -173,8 +179,9 @@ class Driver:
         current_track_duration().
         :return: Nothing
         """
+        pfx = '//section[@id="nowPlaying"]' if self.is_now_playing_maximised() else ''
         el = self._driver.find_elements_by_xpath(
-            '//div[contains(@class,"progressBarWrapper")]/div/div[contains(@class,"interactionLayer")]')[0]
+            pfx + '//div[contains(@class,"progressBarWrapper")]/div/div[contains(@class,"interactionLayer")]')[0]
         clickxpos = position * el.size["width"] / self.current_track_duration()
 
         action = webdriver.ActionChains(self._driver)
