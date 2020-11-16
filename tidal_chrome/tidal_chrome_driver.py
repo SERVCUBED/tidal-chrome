@@ -106,8 +106,8 @@ class Driver:
         :return: True if shuffle is currently enabled.
         """
         return "active" in \
-            self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("children")[0]. \
-            get_property("classList")
+            ''.join(self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("classList"))
+
 
     def toggle_shuffle(self) -> None:
         """
