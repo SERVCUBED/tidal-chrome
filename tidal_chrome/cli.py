@@ -323,6 +323,8 @@ class MPRIS(dbus.service.Object):
                     'xesam:artist': dbus.Array(self.driver.current_track_artists(),signature="s")
                 }, signature="sv")
                 changed["Metadata"] = self.playerproperties["Metadata"]
+                changed["PlaybackStatus"] = state
+
 
             position = self.driver.current_track_progress()
             if self.playerproperties["Position"] != position:
@@ -342,6 +344,7 @@ class MPRIS(dbus.service.Object):
             }, signature="sv")
             changed["Metadata"] = self.playerproperties["Metadata"]
             changed["Position"] = self.playerproperties["Position"] = dbus.Int64(0)
+            changed["PlaybackStatus"] = state
 
         if len(changed) > 0:
             self.PropertiesChanged(PLAYER_IFACE, changed, [])

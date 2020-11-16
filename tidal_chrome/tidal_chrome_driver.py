@@ -35,6 +35,9 @@ class Driver:
 
         print("Started")
 
+    def __del__(self):
+        self.quit()
+
     def can_play(self) -> bool:
         """
         Get whether the player can play, pause, seek.

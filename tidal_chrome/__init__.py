@@ -1,4 +1,4 @@
-__version__ = '1.3'
+__version__ = '1.4'
 __description__ = 'Tidal-Chrome MPRIS bridge'
 requires = ['selenium', 'gobject', 'dbus-python']
 

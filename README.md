@@ -5,7 +5,7 @@ integration.
 
 # Installation
 
-Install Google Chrome and Chrome's flash player plugin from your repositories first. Then install the module with:
+Install Google Chrome from your repositories first. Then install the module with:
 
     # pip install chromedriver_installer 
     # python setup.py install
@@ -15,7 +15,7 @@ Install Google Chrome and Chrome's flash player plugin from your repositories fi
 
 1. Launch `TIDAL` in your application launcher or run `tidal-chrome` in your favourite terminal.
 2. A new Chrome window will be opened. Sign in to TIDAL.
-3. Play something. You may need to follow through on the prompts to install/run flash.
+3. Play some music.
 
 
 # Troubleshooting
