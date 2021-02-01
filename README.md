@@ -10,6 +10,7 @@ Install Google Chrome from your repositories first. Then install the module with
     # pip install chromedriver_installer 
     # python setup.py install
     # cp tidal-google-chrome.desktop /usr/share/applications/tidal-google-chrome.desktop
+    # xdg-mime install /usr/share/applications/tidal-google-chrome.desktop
 
 # Using TIDAL-Chrome
 

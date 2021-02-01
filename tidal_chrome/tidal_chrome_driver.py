@@ -22,6 +22,8 @@ class Driver:
         chrome_options.add_argument("--user-data-dir=" +
                                     os.path.expanduser(
                                         "~/.config/tidal-google-chrome/"))
+        chrome_options.add_argument("--disable-media-session-api")
+        chrome_options.add_argument("--dbus-stub")
         chrome_options.add_argument("--app=https://listen.tidal.com/")
 
         print("Starting webdriver")
@@ -212,18 +214,18 @@ class Driver:
 
     def open_uri(self, uri) -> None:
         """
-        Open a tidal:// protocol URI in the browser window without reloading
+        Open a tidal:/ protocol URI in the browser window without reloading
         the entire page.
-        :param uri: The tidal:// URI to open.
+        :param uri: The tidal:/ URI to open.
         :return: Nothing
         """
-        if not uri.startswith("tidal://"):
+        if not uri.startswith("tidal:/"):
             return
 
         el = self._driver.find_elements_by_xpath("//*[@id=\"main\"]//a[1]")[-1]
         self._driver.execute_script(
             "arguments[0].href=arguments[1];arguments[0].click();", el,
-            uri.replace("tidal://", "/"))
+            uri.replace("tidal:/", ""))
 
     def quit(self) -> None:
         """
