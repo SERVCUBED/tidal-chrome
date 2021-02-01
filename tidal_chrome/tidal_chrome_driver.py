@@ -43,7 +43,7 @@ class Driver:
         :return: True if the player can play, pause, seek
         """
         return "hasPlayer" in ''.join(self._driver.find_elements_by_xpath(
-            '//div[contains(@class,"mainLayout")]/div[2]')[0].get_property("classList"))
+            '//div[@id="wimp"]/div/div/div/div[2]')[0].get_property("classList"))
 
     def play(self) -> None:
         """
