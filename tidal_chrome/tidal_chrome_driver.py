@@ -22,8 +22,7 @@ class Driver:
         chrome_options.add_argument("--user-data-dir=" +
                                     os.path.expanduser(
                                         "~/.config/tidal-google-chrome/"))
-        chrome_options.add_argument("--disable-media-session-api")
-        chrome_options.add_argument("--dbus-stub")
+        chrome_options.add_argument("--disable-features=MediaSessionService")
         chrome_options.add_argument("--app=https://listen.tidal.com/")
 
         print("Starting webdriver")
@@ -162,7 +161,7 @@ class Driver:
         Gets the progress of the current track in microseconds.
         :return: The current track progress in microseconds.
         """
-        t = self._driver.find_elements_by_xpath('//time[contains(@class,"currentTime")]')[0]. \
+        t = self._driver.find_elements_by_xpath('//time[@data-test="current-time"]')[0]. \
             get_property("innerHTML").split(":")
         return (int(t[0]) * 60 + int(t[1])) * 1000000  # Microseconds
 
@@ -171,7 +170,7 @@ class Driver:
         Gets the duration of the current track in microseconds.
         :return: The current track duration in microseconds.
         """
-        t = self._driver.find_elements_by_xpath('//time[contains(@class,"duration")]')[0]. \
+        t = self._driver.find_elements_by_xpath('//time[@data-test="duration-time"]')[0]. \
             get_property("innerHTML").split(":")
         return (int(t[0]) * 60 + int(t[1])) * 1000000  # Microseconds
 
