@@ -153,7 +153,7 @@ class Driver:
         """
         return self._driver. \
             find_elements_by_xpath(
-            '//figure[contains(@class,"mediaImagery")]/div/div/div/img[contains(@class,"image")]')[0]. \
+            '//figure[contains(@class,"mediaImageryTrack")]/div/div/div/img')[0]. \
             get_property("src")
 
     def current_track_progress(self) -> int:
