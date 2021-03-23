@@ -51,7 +51,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[contains(@class,"playback-controls")][@title="Play"]')
+                                        '//div[@data-test="play-controls"]/div/button[@title="Play"]')
                                     [0])
 
     def pause(self) -> None:
@@ -61,7 +61,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[contains(@class,"playback-controls")][@title="Pause"]')
+                                        '//div[@data-test="play-controls"]/div/button[@title="Pause"]')
                                     [0])
 
     def play_pause(self) -> bool:
@@ -69,7 +69,7 @@ class Driver:
         Toggle the playing state for the current track.
         :return: True if track is now playing, false otherwise
         """
-        el = self._driver.find_elements_by_xpath('//button[contains(@class,"playbackToggle")]')[0]
+        el = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button')[0]
         self._driver.execute_script("arguments[0].click();", el)
         return el.get_property("title") == "Pause"
 
@@ -80,7 +80,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[contains(@class,"playback-controls")][@title="Next"]')
+                                        '//div[@data-test="play-controls"]/button[@title="Next"]')
                                     [0])
 
     def previous(self) -> None:
@@ -90,7 +90,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[contains(@class,"playback-controls")][@title="Previous"]')
+                                        '//div[@data-test="play-controls"]/button[@title="Previous"]')
                                     [0])
 
     def is_playing(self) -> bool:
@@ -99,22 +99,21 @@ class Driver:
         :return: True if the player is currently playing.
         """
         return self._driver.find_elements_by_xpath(
-            '//button[contains(@class,"playbackToggle")]')[0].get_property("title") == "Pause"
+            '//div[@data-test="play-controls"]/div/button')[0].get_property("title") == "Pause"
 
     def is_shuffle(self) -> bool:
         """
         Gets whether shuffle is currently enabled.
         :return: True if shuffle is currently enabled.
         """
-        return "active" in \
-               ''.join(self._driver.find_elements_by_xpath('//button[@title="Shuffle"]')[0].get_property("classList"))
+        return self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Shuffle"]')[0].get_attribute('aria-checked') == 'true'
 
     def is_now_playing_maximised(self) -> bool:
         """
         Gets whether the "Now Playing" section is fullscreen
         :return True if the "Now Playing" section is fullscreen
         """
-        return "visible" in ''.join(self._driver.find_element_by_id('nowPlaying').get_property("classList"))
+        return len(self._driver.find_elements_by_xpath('//section[@id="nowPlaying"]/div/div')) > 1
 
     def toggle_shuffle(self) -> None:
         """
@@ -123,7 +122,7 @@ class Driver:
         """
         self._driver.execute_script("arguments[0].click();",
                                     self._driver.find_elements_by_xpath(
-                                        '//button[@title="Shuffle"]')
+                                        '//div[@data-test="play-controls"]/button[@title="Shuffle"]')
                                     [0])
 
     def current_track_title(self) -> str:
@@ -132,7 +131,7 @@ class Driver:
         :return: String of the current track title.
         """
         return self._driver. \
-            find_elements_by_xpath('//div[contains(@class,"mediaInformation")]/span[1]/a')[0]. \
+            find_elements_by_xpath('//div[@data-test="footer-track-title"]/a/span')[0]. \
             get_property("innerHTML")
 
     def current_track_artists(self) -> list:
@@ -143,7 +142,7 @@ class Driver:
         return [x.get_property("title") for x in
                 self._driver.
                     find_elements_by_xpath(
-                    '//div[contains(@class,"leftColumn")]/div/div[contains(@class,"mediaInformation")]/span[2]/a')
+                    '//span[contains(@class,"artist-link")]/a')
                 ]
 
     def current_track_image(self) -> str:
@@ -153,8 +152,8 @@ class Driver:
         """
         return self._driver. \
             find_elements_by_xpath(
-            '//figure[contains(@class,"mediaImageryTrack")]/div/div/div/img')[0]. \
-            get_property("src")
+            '//figure[@data-test="current-media-imagery"]/div/div/div/img')[0]. \
+            get_property("srcset").split(',')[-1].split()[0]
 
     def current_track_progress(self) -> int:
         """
