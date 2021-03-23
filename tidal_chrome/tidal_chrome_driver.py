@@ -9,24 +9,36 @@ from selenium import webdriver
 
 class Driver:
 
-    def __init__(self):
+    def __init__(self, prefs=None):
         """
         Creates a new instance of the TIDAL-Chrome driver, opens a browser
         window and navigates to TIDAL.
 
-        The browser's data directory is set to:
+        The browser's data directory is (by default) set to:
             ~/.config/tidal-google-chrome/
         """
+
+        if not prefs:
+            from . import preferences
+            prefs = preferences.Preferences(True)
+
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--disable-default-apps")
         chrome_options.add_argument("--user-data-dir=" +
                                     os.path.expanduser(
-                                        "~/.config/tidal-google-chrome/"))
+                                        prefs.values["profile_path"]))
         chrome_options.add_argument("--disable-features=MediaSessionService")
         chrome_options.add_argument("--app=https://listen.tidal.com/")
+        if prefs.values["enable_kiosk_mode"]:
+            chrome_options.add_argument("--kiosk")
+
+        if prefs.values["chrome_binary_path"] is not None:
+            chrome_options.binary_location = prefs.values["chrome_binary_path"]
 
         print("Starting webdriver")
-        self._driver = webdriver.Chrome('chromedriver', options=chrome_options)
+        self._driver = webdriver.Chrome(prefs.values["chromedriver_binary_path"], options=chrome_options)
 
         print("Waiting for load")
         self._driver.implicitly_wait(10)

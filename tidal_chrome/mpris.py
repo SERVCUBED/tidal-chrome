@@ -1,3 +1,7 @@
+# Part of the Tidal-Chrome MPRIS bridge
+# Author: SERVCUBED 2018-
+# License: AGPL
+
 import sys
 import threading
 import time
@@ -12,11 +16,15 @@ from . import tidal_chrome_driver
 
 
 class MPRIS(dbus.service.Object):
-    def __init__(self, isdebug, bus, loop=None):
+    def __init__(self, isdebug, bus, loop=None, prefs=None):
         self.isdebug = isdebug
         self.loop = loop
+        if not prefs:
+            from . import preferences
+            prefs = preferences.Preferences(True)
+        self.prefs = prefs
         self.quit = False
-        self.driver = tidal_chrome_driver.Driver()
+        self.driver = tidal_chrome_driver.Driver(prefs)
 
         self.baseproperties = {"CanQuit": True,
                                "Fullscreen": False,
