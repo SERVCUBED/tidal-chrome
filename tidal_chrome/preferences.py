@@ -8,18 +8,20 @@ from typing import Optional
 
 from .__init__ import *
 
+
 class Preferences:
 
-    def __init__(self, default_only: bool = False, path: Optional[str] = None):
+    def __init__(self, default_only: bool = False, path: Optional[str] = None,
+                 should_create_if_not_exist: bool = False):
         self.encoder = self.path = None
         self.values = {
-                "chrome_binary_path": None,
-                "profile_path": "~/.config/tidal-google-chrome/",
-                "chromedriver_binary_path": "chromedriver",
-                "enable_kiosk_mode": False,
-                "force_is_debug_if_stdin_isatty": False,
-                "force_interactive_prompt_if_stdin_isatty": False,
-                # TODO "scrensaver_inhibitor": None
+            "chrome_binary_path": None,
+            "profile_path": "~/.config/tidal-google-chrome/",
+            "chromedriver_binary_path": "chromedriver",
+            "enable_kiosk_mode": False,
+            "force_is_debug_if_stdin_isatty": False,
+            "force_interactive_prompt_if_stdin_isatty": False,
+            # TODO "scrensaver_inhibitor": None
         }
         if default_only:
             return
@@ -28,8 +30,8 @@ class Preferences:
             path = DEFAULT_CONF_PATH
         self.path = os.path.expanduser(path)
         if not os.path.isfile(self.path):
-            # Create preferences file
-            self.Save()
+            if should_create_if_not_exist:
+                self.save()
             return
 
         f = newvalues = None
@@ -50,8 +52,7 @@ class Preferences:
             if k in self.values:
                 self.values[k] = v
 
-
-    def Save(self, path: Optional[str] = None) -> None:
+    def save(self, path: Optional[str] = None) -> None:
         """
         Save the current preferences as a json file.
 
@@ -79,4 +80,3 @@ class Preferences:
         finally:
             if f is not None:
                 f.close()
-

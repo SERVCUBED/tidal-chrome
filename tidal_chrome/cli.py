@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Tidal-Chrome MPRIS bridge
 
@@ -24,17 +24,18 @@ def run(isdebug: Optional[bool] = None):
 
     # Parse URI
     import argparse
-    par = argparse.ArgumentParser()#description=__description__)
-    par.add_argument("-v", "--verbose", dest="isdebug", action="store_true", help="Enable debugging mode")
-    par.add_argument("-d", "--no-conf", dest="default_only", action="store_true",
-                     help="Use the default configuration file values; do not write the configuration file if it does "
-                          "not exist.")
-    par.add_argument("-c", "--conf", nargs=1, action="store",
-                     help="Path to JSON configuration file (default: \"%(default)s\").", default=DEFAULT_CONF_PATH,
-                     metavar="FILE")
-    par.add_argument("-i", "--interactive", dest="interactive", action="store_true",
-                     help="Enable interactive prompt for debugging.")
-    par.add_argument("URI", nargs="?", help="TIDAL URI to open.", metavar="tidal://...|https://listen.tidal.com/...")
+    par = argparse.ArgumentParser(description=description)
+    par.add_argument('-v', '--verbose', dest='isdebug', action='store_true', help='Enable debugging mode')
+    par.add_argument('--create-conf', dest='create_conf', action='store_true',
+                     help='Create a configuration file in either the default path or as specified with --conf. If '
+                          'this option is not set, use the default configuration file values and do not write the '
+                          'configuration file if it does not exist.')
+    par.add_argument('-c', '--conf', nargs=1, action='store',
+                     help='Path to JSON configuration file to use, if it exists (default: "' + DEFAULT_CONF_PATH + ').',
+                     default=None, metavar="FILE")
+    par.add_argument('-i', '--interactive', dest="interactive", action='store_true',
+                     help='Enable interactive prompt for debugging.')
+    par.add_argument('URI', nargs='?', help='TIDAL URI to open.', metavar="tidal://...|https://listen.tidal.com/...")
     args = par.parse_args()
 
     if args.isdebug:
@@ -63,7 +64,8 @@ def run(isdebug: Optional[bool] = None):
     t_c = None
 
     from . import mpris, preferences
-    prefs = preferences.Preferences(default_only=args.default_only, path=args.conf)
+    prefs = preferences.Preferences(path=args.conf,
+                                    should_create_if_not_exist=args.create_conf)
     if isdebug is None:
         isdebug = prefs.values["force_is_debug_if_stdin_isatty"] and sys.stdin.isatty()
     print("isdebug=" + str(isdebug))
@@ -82,7 +84,7 @@ Hints:\tt_c.quit() to quit;
 \tt_c.driver to access tidal_chrome_driver.Driver;
 \tt_c.driver._driver to access Selenium WebDriver;
 \tprefs.values to access preferences dictionary. Note that some changes only take affect after a restart;
-\tprefs.Save(path=None) to save preferences to <path>[=None: current set path].""")
+\tprefs.save(path=None) to save preferences to <path>[=None: current set path].""")
             embed()
         else:
             loop.run()

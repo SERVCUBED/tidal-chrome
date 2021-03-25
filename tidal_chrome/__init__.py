@@ -1,5 +1,5 @@
-__version__ = '1.6.2'
-__description__ = 'Tidal-Chrome MPRIS bridge'
+version = '1.7.2'
+description = 'Tidal-Chrome MPRIS bridge'
 requires = ['selenium', 'gobject', 'dbus-python']
 
 OPATH = "/org/mpris/MediaPlayer2"

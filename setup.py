@@ -1,5 +1,5 @@
 from setuptools import setup
-from tidal_chrome import __version__, __description__, requires
+from tidal_chrome import version, description, requires
 import os
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
@@ -7,13 +7,13 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
 
 setup(
     name='tidal-chrome',
-    version=__version__,
+    version=version,
     packages=['tidal_chrome'],
     url='https://github.com/SERVCUBED/tidal-chrome',
     license='AGPL',
     author='SERVCUBED',
     author_email='ben@servc.eu',
-    description=__description__,
+    description=description,
     long_description=README,
     install_requires=requires,
     entry_points={

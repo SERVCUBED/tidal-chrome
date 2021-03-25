@@ -7,8 +7,9 @@ integration.
 
 Install Google Chrome from your repositories first. Then install the module with:
 
-    # pip install chromedriver_installer 
-    # python setup.py install
+    # pip3 install chromedriver_installer
+    # pip3 install --upgrade setuptools
+    # python3 setup.py install
     # cp tidal-google-chrome.desktop /usr/share/applications/tidal-google-chrome.desktop
     # xdg-mime install /usr/share/applications/tidal-google-chrome.desktop
 
@@ -18,6 +19,9 @@ Install Google Chrome from your repositories first. Then install the module with
 2. A new Chrome window will be opened. Sign in to TIDAL.
 3. Play some music.
 
+The `tidal-chrome` executable accepts command line options and searches for a configuration file with the 
+default path of `~/.config/tidal-chrome-prefs.json`. This path can be changed with the `--conf` command 
+line argument. You can run `tidal-chrome --create-conf` to create the default JSON configuration file.
 
 # Troubleshooting
 
