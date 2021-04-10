@@ -3,7 +3,7 @@
 # License: AGPL
 
 import os
-from typing import Optional
+from typing import Optional, Union
 
 from selenium.webdriver import Chrome, ChromeOptions, ActionChains
 from selenium.webdriver.common.keys import Keys
@@ -226,9 +226,8 @@ class Driver:
         current_track_duration().
         :return: Nothing
         """
-        pfx = '//section[@id="nowPlaying"]' if self.is_now_playing_maximised() else ''
-        el = self._driver.find_elements_by_xpath(
-            pfx + '//div[contains(@class,"progressBarWrapper")]/div/div[contains(@class,"interactionLayer")]')
+        el = self._driver.find_elements_by_xpath('//div[contains(@class,"progressBarWrapper")]/div/div[contains('
+                                                 '@class,"interactionLayer")]')
         if not el:
             self.__errorhandler('set_position')
             return
@@ -238,6 +237,48 @@ class Driver:
         action.move_to_element_with_offset(el[0], clickxpos, 5)
         action.click()
         action.perform()
+
+    def add_cur_to_playlist(self, playlist: Union[int, str], duplicateactionadd: Optional[bool] = None) -> None:
+        """
+        Adds the currently playing track to the first playlist
+        :param playlist: Set to a string of the exact playlist name to match, or the zero-based index of the playlist
+        in the recent playlists entry. The string name must be exact and an integer index is only advised if you wish 
+        to add to the 0th playlist (the most recent one).
+        :param duplicateactionadd: Set to None to do no action when prompted about a duplicate playlist entry. Set
+        True to add the track to the playlist anyways, or False to always decline the popup.
+        :return: Nothing
+        """
+        el = self._driver.find_elements_by_xpath('//button[@data-test="footer-context-menu"]')
+        if not el:
+            self.__errorhandler('add_cur_to_playlist: ' + str(playlist))
+            return
+        ActionChains(self._driver).click(el[0]).perform()
+
+        el = self._driver.find_elements_by_xpath('//div[@data-test="contextmenu"]/ul/li[1]')
+        if not el:
+            self.__errorhandler('add_cur_to_playlist_2: ' + str(playlist))
+            return
+        ActionChains(self._driver).move_to_element_with_offset(el[0], 2, 2).pause(0.3).perform()
+
+        if isinstance(playlist, int):
+            el = self._driver.find_elements_by_xpath('//div[@data-type="contextmenu-open"]/div/button['
+                                                     '@data-test="sub-menu-item-recent-playlist-'+str(playlist)+'"]')
+        else:
+            el = self._driver.find_elements_by_xpath('//div[@data-type="contextmenu-open"]/div['
+                                                     '@data-track--icon-clicked="'+str(playlist)+'"]/button')
+        if not el:
+            self.__errorhandler('add_cur_to_playlist_3: ' + str(playlist))
+            return
+        ActionChains(self._driver).click(el[0]).perform()
+
+        if duplicateactionadd is None:
+            return
+
+        el = self._driver.find_elements_by_xpath('//div[@class="ReactModalPortal"]/div/div/div/div/button')
+        if not el or len(el) < 2:
+            # No duplicate entry modal, ignore
+            return
+        ActionChains(self._driver).pause(0.3).click(el[int(duplicateactionadd)]).perform()
 
     def raise_window(self) -> None:
         """

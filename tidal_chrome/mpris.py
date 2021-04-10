@@ -288,6 +288,19 @@ class MPRIS(dbus.service.Object):
             if isshuffle is None or value == isshuffle:
                 return
             self.driver.toggle_shuffle()
+        if name == "LoopStatus":
+            value = value.lower()
+            if value not in ["track", "playlist"]:
+                return
+            o = self.prefs.values["use_loop_status_%s_for" % value]
+            if o is not None:
+                if "action" not in o or "args" not in o:
+                    print(f"Cannot set property: Malformed value for use_loop_status_{value}_for preferences")
+                    return
+                if o["action"] == "add_cur_to_playlist":
+                    self.driver.add_cur_to_playlist(*o["args"])
+            return
+
         self.playerproperties[name] = value
         self.PropertiesChanged(PLAYER_IFACE, {name: value}, [])
 

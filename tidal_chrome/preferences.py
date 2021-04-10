@@ -23,8 +23,15 @@ class Preferences:
             "force_interactive_prompt_if_stdin_isatty": False,
             "force_quit_interactive_prompt_on_driver_quit": True,
             "use_shuffle_as_cur_favourite": False,
+            "use_loop_status_track_for": None,
+            "use_loop_status_playlist_for": None,
             # TODO "scrensaver_inhibitor": None
         }
+        # Sample entry for playlist setting preferences:
+        # "use_loop_status_track_for": {"action": "add_cur_to_playlist", "args": ("Favourites", False)},
+        # "use_loop_status_playlist_for": {"action": "add_cur_to_playlist", "args": (0, None)},
+        # See the documentation for Driver.add_cur_to_playlist for details about the args.
+
         if default_only:
             return
 
