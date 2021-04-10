@@ -114,8 +114,6 @@ class MPRIS(dbus.service.Object):
             self.__set_base_property(property_name, new_value)
         elif interface_name == PLAYER_IFACE:
             self.__set_player_property(property_name, new_value)
-        # validate the property name and value, update internal state…
-        self.PropertiesChanged(interface_name, {property_name: new_value}, [])
 
     @dbus.service.signal(dbus_interface=dbus.PROPERTIES_IFACE,
                          signature='sa{sv}as')
@@ -223,8 +221,10 @@ class MPRIS(dbus.service.Object):
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
                          out_signature="")
     def PlayPause(self):
-        self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Playing" if self.driver.play_pause() else "Paused"},
-                               [])
+        ps = self.driver.play_pause()
+        if ps is None:
+            return
+        self.PropertiesChanged(PLAYER_IFACE, {"PlaybackStatus": "Playing" if ps else "Paused"}, [])
 
     @dbus.service.method(dbus_interface=PLAYER_IFACE, in_signature="",
                          out_signature="")
@@ -271,17 +271,23 @@ class MPRIS(dbus.service.Object):
     def __set_base_property(self, name, value):
         if name not in ["Fullscreen"]:
             return
+        if self.baseproperties[name] == value:
+            return
         if name == "Fullscreen":
             self.driver.set_fullscreen(value)
         self.baseproperties[name] = value
+        self.PropertiesChanged(BASE_IFACE, {name: value}, [])
 
     def __set_player_property(self, name, value):
         if name not in ["Loopstatus", "Rate", "Shuffle", "Volume"]:
+            return
+        if self.playerproperties[name] == value:
             return
         if name == "Shuffle":
             if value != self.driver.is_shuffle():
                 self.driver.toggle_shuffle()
         self.playerproperties[name] = value
+        self.PropertiesChanged(PLAYER_IFACE, {name: value}, [])
 
     def __update_tick(self):
         if self.isdebug:

@@ -84,7 +84,7 @@ class Driver:
             return
         self._driver.execute_script("arguments[0].click();", t[0])
 
-    def play_pause(self) -> bool:
+    def play_pause(self) -> Optional[bool]:
         """
         Toggle the playing state for the current track.
         :return: True if track is now playing, false otherwise
@@ -92,7 +92,7 @@ class Driver:
         el = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button')
         if not el:
             self.__errorhandler('play_pause')
-            return False
+            return None
         el = el[0]
         self._driver.execute_script("arguments[0].click();", el)
         return el.get_property("title") == "Pause"
