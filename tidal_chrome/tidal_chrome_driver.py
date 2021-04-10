@@ -5,7 +5,8 @@
 import os
 from typing import Optional
 
-from selenium import webdriver
+from selenium.webdriver import Chrome, ChromeOptions, ActionChains
+from selenium.webdriver.common.keys import Keys
 
 
 class Driver:
@@ -25,7 +26,7 @@ class Driver:
             from . import preferences
             prefs = preferences.Preferences(True)
 
-        chrome_options = webdriver.ChromeOptions()
+        chrome_options = ChromeOptions()
         chrome_options.add_argument("--disable-sync")
         chrome_options.add_argument("--no-first-run")
         chrome_options.add_argument("--disable-default-apps")
@@ -41,7 +42,7 @@ class Driver:
             chrome_options.binary_location = prefs.values["chrome_binary_path"]
 
         print("Starting webdriver")
-        self._driver = webdriver.Chrome(prefs.values["chromedriver_binary_path"], options=chrome_options)
+        self._driver = Chrome(prefs.values["chromedriver_binary_path"], options=chrome_options)
 
         print("Waiting for load")
         self._driver.implicitly_wait(10)
@@ -228,7 +229,7 @@ class Driver:
             return
         clickxpos = position * el[0].size["width"] / self.current_track_duration()
 
-        action = webdriver.ActionChains(self._driver)
+        action = ActionChains(self._driver)
         action.move_to_element_with_offset(el[0], clickxpos, 5)
         action.click()
         action.perform()
@@ -256,7 +257,8 @@ class Driver:
                 return
             self._driver.execute_script("arguments[0].click();", t[0])
         else:
-            self._driver.maximize_window()
+            # self._driver.maximize_window()
+            ActionChains(self._driver).send_keys(Keys.ESCAPE).perform()
 
     def set_now_playing_maximised(self, value) -> None:
         """
