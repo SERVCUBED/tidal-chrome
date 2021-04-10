@@ -248,8 +248,13 @@ class Driver:
         :return: Nothing
         """
         if value:
-            self._driver.fullscreen_window()
+            # self._driver.fullscreen_window()
             self.set_now_playing_maximised(True)
+            t = self._driver.find_elements_by_xpath('//button[@data-test="fullscreen"]')
+            if not t:
+                self.__errorhandler('set_fullscreen')
+                return
+            self._driver.execute_script("arguments[0].click();", t[0])
         else:
             self._driver.maximize_window()
 
@@ -265,12 +270,6 @@ class Driver:
                 self.__errorhandler('set_now_playing_maximised')
                 return
             self._driver.execute_script("arguments[0].click();", t[0])
-            # t2 = self._driver.find_elements_by_xpath('//button[@data-test="fullscreen"]')
-            # if not t2:
-            #     self.__errorhandler('set_now_playing_maximised_2')
-            #     self._driver.execute_script("arguments[0].click();", t[0])
-            #     return
-            # self._driver.execute_script("arguments[0].click(); arguments[1].click();", t[0], t2[0])
 
     def open_uri(self, uri) -> None:
         """
