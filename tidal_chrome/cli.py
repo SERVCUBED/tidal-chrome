@@ -59,6 +59,8 @@ def run(isdebug: Optional[bool] = None):
         sys.exit(0)
 
     print("TIDAL-Chrome by SERVCUBED")
+    import gi
+    gi.require_version("Gtk", "3.0")
     from gi.repository import GLib
     loop = GLib.MainLoop()
     t_c = None
@@ -75,17 +77,31 @@ def run(isdebug: Optional[bool] = None):
             t_c.driver._driver.get(l.replace("tidal:/", "https://listen.tidal.com"))
         if (prefs.values["force_interactive_prompt_if_stdin_isatty"] or args.interactive) and sys.stdin.isatty():
             import threading
-            thr = threading.Thread(target=loop.run)
-            thr.start()
-            from IPython import embed
-            print ("""
+            try:
+                import IPython
+            except ImportError:
+                print("Make sure IPython package is installed to enable interactive mode.")
+                loop.run()
+            else:
+                def _r():
+                    loop.run()
+                    e = IPython.get_ipython()
+                    if e:
+                        e.confirm_exit = False
+                        e.ask_exit()
+                        e.pt_app.default_buffer.accept_handler(e.pt_app.default_buffer)
+                        e.pt_loop.stop()
+
+                thr = threading.Thread(target=_r)
+                thr.start()
+                print("""
 Starting interactive mode. The MPRIS interface can be accessed with \"t_c\";
-Hints:\tt_c.quit() to quit;
+Hints:\tloop.quit() to quit;
 \tt_c.driver to access tidal_chrome_driver.Driver;
 \tt_c.driver._driver to access Selenium WebDriver;
 \tprefs.values to access preferences dictionary. Note that some changes only take affect after a restart;
 \tprefs.save(path=None) to save preferences to <path>[=None: current set path].""")
-            embed()
+                IPython.embed()
         else:
             loop.run()
     except KeyboardInterrupt:
