@@ -44,6 +44,11 @@ class Driver:
         print("Starting webdriver")
         self._driver = Chrome(prefs.values["chromedriver_binary_path"], options=chrome_options)
 
+        self.useShuffleAsCurFavourite = prefs.values["use_shuffle_as_cur_favourite"]
+        self._shuffleXPath = '//button[@data-test="footer-favorite-button"]' \
+            if self.useShuffleAsCurFavourite else \
+            '//div[@data-test="play-controls"]/button[@title="Shuffle"]'
+
         print("Waiting for load")
         self._driver.implicitly_wait(10)
 
@@ -128,13 +133,13 @@ class Driver:
         t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button')
         return t[0].get_property("title") == "Pause" if t else False
 
-    def is_shuffle(self) -> bool:
+    def is_shuffle(self) -> Optional[bool]:
         """
         Gets whether shuffle is currently enabled.
         :return: True if shuffle is currently enabled.
         """
-        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Shuffle"]')
-        return t[0].get_attribute('aria-checked') == 'true' if t else False
+        t = self._driver.find_elements_by_xpath(self._shuffleXPath)
+        return t[0].get_attribute('aria-checked') == 'true' if t else None
 
     def is_now_playing_maximised(self) -> bool:
         """
@@ -149,7 +154,7 @@ class Driver:
         :return: Nothing
         """
 
-        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Shuffle"]')
+        t = self._driver.find_elements_by_xpath(self._shuffleXPath)
         if not t:
             self.__errorhandler('toggle_shuffle')
             return

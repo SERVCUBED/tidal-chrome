@@ -22,6 +22,7 @@ class Preferences:
             "force_is_debug_if_stdin_isatty": False,
             "force_interactive_prompt_if_stdin_isatty": False,
             "force_quit_interactive_prompt_on_driver_quit": True,
+            "use_shuffle_as_cur_favourite": False,
             # TODO "scrensaver_inhibitor": None
         }
         if default_only:

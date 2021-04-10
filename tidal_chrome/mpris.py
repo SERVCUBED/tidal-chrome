@@ -279,13 +279,15 @@ class MPRIS(dbus.service.Object):
         self.PropertiesChanged(BASE_IFACE, {name: value}, [])
 
     def __set_player_property(self, name, value):
-        if name not in ["Loopstatus", "Rate", "Shuffle", "Volume"]:
+        if name not in ["LoopStatus", "Rate", "Shuffle", "Volume"]:
             return
         if self.playerproperties[name] == value:
             return
         if name == "Shuffle":
-            if value != self.driver.is_shuffle():
-                self.driver.toggle_shuffle()
+            isshuffle = self.driver.is_shuffle()
+            if isshuffle is None or value == isshuffle:
+                return
+            self.driver.toggle_shuffle()
         self.playerproperties[name] = value
         self.PropertiesChanged(PLAYER_IFACE, {name: value}, [])
 
@@ -328,6 +330,13 @@ class MPRIS(dbus.service.Object):
             if self.playerproperties["Position"] != position:
                 changed["Position"] = self.playerproperties["Position"] = dbus.Int64(position)
 
+            # Update favourited state on track change
+            if self.driver.useShuffleAsCurFavourite:
+                isshuffle = self.driver.is_shuffle()
+                if isshuffle is not None and self.playerproperties["Shuffle"] != isshuffle:
+                    self.playerproperties["Shuffle"] = isshuffle
+                    changed["Shuffle"] = isshuffle
+
         elif self._last_track_name != "":
             self._last_track_name = ""
             self.playerproperties["Metadata"] = dbus.Dictionary({
@@ -352,11 +361,11 @@ class MPRIS(dbus.service.Object):
             print("Reduced Tick")
         changed = {}
 
-        if not self.playerproperties["CanPlay"] and not self.playerproperties["Shuffle"]:
+        if not self.playerproperties["CanPlay"] and self.playerproperties["Shuffle"]:
             self.playerproperties["Shuffle"] = changed["Shuffle"] = False
         else:
             isshuffle = self.driver.is_shuffle()
-            if self.playerproperties["Shuffle"] != isshuffle:
+            if isshuffle is not None and self.playerproperties["Shuffle"] != isshuffle:
                 self.playerproperties["Shuffle"] = isshuffle
                 changed["Shuffle"] = isshuffle
 
