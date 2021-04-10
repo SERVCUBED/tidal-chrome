@@ -21,6 +21,7 @@ class Preferences:
             "enable_kiosk_mode": False,
             "force_is_debug_if_stdin_isatty": False,
             "force_interactive_prompt_if_stdin_isatty": False,
+            "force_quit_interactive_prompt_on_driver_quit": True,
             # TODO "scrensaver_inhibitor": None
         }
         if default_only:

@@ -85,6 +85,8 @@ def run(isdebug: Optional[bool] = None):
             else:
                 def _r():
                     loop.run()
+                    if not prefs.values['force_quit_interactive_prompt_on_driver_quit']:
+                        return
                     e = IPython.get_ipython()
                     if e:
                         e.confirm_exit = False
