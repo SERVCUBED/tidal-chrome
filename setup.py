@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from setuptools import setup
 from tidal_chrome import version, description, requires
 import os
@@ -21,4 +23,7 @@ setup(
             'tidal-chrome=tidal_chrome.cli:run',
         ],
     },
+    data_files=[
+        ('share/applications', ['tidal-google-chrome.desktop']),
+    ],
 )

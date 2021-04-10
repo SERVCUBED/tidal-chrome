@@ -3,13 +3,14 @@
 # License: AGPL
 
 import os
+from typing import Optional
 
 from selenium import webdriver
 
 
 class Driver:
 
-    def __init__(self, prefs=None):
+    def __init__(self, prefs=None, errorhandler: Optional[callable] = None):
         """
         Creates a new instance of the TIDAL-Chrome driver, opens a browser
         window and navigates to TIDAL.
@@ -17,6 +18,8 @@ class Driver:
         The browser's data directory is (by default) set to:
             ~/.config/tidal-google-chrome/
         """
+
+        self.__errorhandler = errorhandler
 
         if not prefs:
             from . import preferences
@@ -53,35 +56,44 @@ class Driver:
         Get whether the player can play, pause, seek.
         :return: True if the player can play, pause, seek
         """
-        return "hasPlayer" in ''.join(self._driver.find_elements_by_xpath(
-            '//div[@id="wimp"]/div/div/div/div[2]')[0].get_property("classList"))
+        t = self._driver.find_elements_by_xpath('//div[@id="wimp"]/div/div/div/div[2]')
+        if not t:
+            self.__errorhandler('can_play')
+            return False
+        return "hasPlayer" in ''.join(t[0].get_property("classList"))
 
     def play(self) -> None:
         """
         Play the current track.
         :return: Nothing
         """
-        self._driver.execute_script("arguments[0].click();",
-                                    self._driver.find_elements_by_xpath(
-                                        '//div[@data-test="play-controls"]/div/button[@title="Play"]')
-                                    [0])
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button[@title="Play"]')
+        if not t:
+            self.__errorhandler('play')
+            return
+        self._driver.execute_script("arguments[0].click();", t[0])
 
     def pause(self) -> None:
         """
         Pause the current track.
         :return: Nothing
         """
-        self._driver.execute_script("arguments[0].click();",
-                                    self._driver.find_elements_by_xpath(
-                                        '//div[@data-test="play-controls"]/div/button[@title="Pause"]')
-                                    [0])
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button[@title="Pause"]')
+        if not t:
+            self.__errorhandler('pause')
+            return
+        self._driver.execute_script("arguments[0].click();", t[0])
 
     def play_pause(self) -> bool:
         """
         Toggle the playing state for the current track.
         :return: True if track is now playing, false otherwise
         """
-        el = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button')[0]
+        el = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button')
+        if not el:
+            self.__errorhandler('play_pause')
+            return False
+        el = el[0]
         self._driver.execute_script("arguments[0].click();", el)
         return el.get_property("title") == "Pause"
 
@@ -90,35 +102,38 @@ class Driver:
         Play the next track, if available.
         :return: Nothing
         """
-        self._driver.execute_script("arguments[0].click();",
-                                    self._driver.find_elements_by_xpath(
-                                        '//div[@data-test="play-controls"]/button[@title="Next"]')
-                                    [0])
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Next"]')
+        if not t:
+            self.__errorhandler(__name__)
+            return
+        self._driver.execute_script("arguments[0].click();", t[0])
 
     def previous(self) -> None:
         """
         Play the previous track, if available.
         :return: Nothing
         """
-        self._driver.execute_script("arguments[0].click();",
-                                    self._driver.find_elements_by_xpath(
-                                        '//div[@data-test="play-controls"]/button[@title="Previous"]')
-                                    [0])
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Previous"]')
+        if not t:
+            self.__errorhandler('previous')
+            return
+        self._driver.execute_script("arguments[0].click();", t[0])
 
     def is_playing(self) -> bool:
         """
         Gets whether the player is currently playing.
         :return: True if the player is currently playing.
         """
-        return self._driver.find_elements_by_xpath(
-            '//div[@data-test="play-controls"]/div/button')[0].get_property("title") == "Pause"
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/div/button')
+        return t[0].get_property("title") == "Pause" if t else False
 
     def is_shuffle(self) -> bool:
         """
         Gets whether shuffle is currently enabled.
         :return: True if shuffle is currently enabled.
         """
-        return self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Shuffle"]')[0].get_attribute('aria-checked') == 'true'
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Shuffle"]')
+        return t[0].get_attribute('aria-checked') == 'true' if t else False
 
     def is_now_playing_maximised(self) -> bool:
         """
@@ -132,19 +147,23 @@ class Driver:
         Toggle the shuffle status.
         :return: Nothing
         """
-        self._driver.execute_script("arguments[0].click();",
-                                    self._driver.find_elements_by_xpath(
-                                        '//div[@data-test="play-controls"]/button[@title="Shuffle"]')
-                                    [0])
+
+        t = self._driver.find_elements_by_xpath('//div[@data-test="play-controls"]/button[@title="Shuffle"]')
+        if not t:
+            self.__errorhandler('toggle_shuffle')
+            return
+        self._driver.execute_script("arguments[0].click();", t[0])
 
     def current_track_title(self) -> str:
         """
         Gets the current track title.
         :return: String of the current track title.
         """
-        return self._driver. \
-            find_elements_by_xpath('//div[@data-test="footer-track-title"]/a/span')[0]. \
-            get_property("innerHTML")
+        t = self._driver.find_elements_by_xpath('//div[@data-test="footer-track-title"]/a/span')
+        if not t:
+            self.__errorhandler('current_track_title')
+            return ''
+        return t[0].get_property("innerHTML")
 
     def current_track_artists(self) -> list:
         """
@@ -152,9 +171,7 @@ class Driver:
         :return: A string of the current track artists.
         """
         return [x.get_property("title") for x in
-                self._driver.
-                    find_elements_by_xpath(
-                    '//span[contains(@class,"artist-link")]/a')
+                self._driver.find_elements_by_xpath('//span[contains(@class,"artist-link")]/a')
                 ]
 
     def current_track_image(self) -> str:
@@ -162,18 +179,26 @@ class Driver:
         Gets the URL of the album art for the current track.
         :return: A string containing the album art URL.
         """
-        return self._driver. \
-            find_elements_by_xpath(
-            '//figure[@data-test="current-media-imagery"]/div/div/div/img')[0]. \
-            get_property("srcset").split(',')[-1].split()[0]
+        t = self._driver.find_elements_by_xpath('//figure[@data-test="current-media-imagery"]/div/div/div/img')
+        if not t:
+            self.__errorhandler('current_track_image')
+            return ''
+        t = t[0].get_property("srcset")
+        if not t:
+            self.__errorhandler('current_track_image_srcset')
+            return ''
+        return t.split(',')[-1].split()[0]
 
     def current_track_progress(self) -> int:
         """
         Gets the progress of the current track in microseconds.
         :return: The current track progress in microseconds.
         """
-        t = self._driver.find_elements_by_xpath('//time[@data-test="current-time"]')[0]. \
-            get_property("innerHTML").split(":")
+        t = self._driver.find_elements_by_xpath('//time[@data-test="current-time"]')
+        if not t:
+            self.__errorhandler('current_track_progress')
+            return 0
+        t = t[0].get_property("innerHTML").split(":")
         return (int(t[0]) * 60 + int(t[1])) * 1000000  # Microseconds
 
     def current_track_duration(self) -> int:
@@ -181,8 +206,11 @@ class Driver:
         Gets the duration of the current track in microseconds.
         :return: The current track duration in microseconds.
         """
-        t = self._driver.find_elements_by_xpath('//time[@data-test="duration-time"]')[0]. \
-            get_property("innerHTML").split(":")
+        t = self._driver.find_elements_by_xpath('//time[@data-test="duration-time"]')
+        if not t:
+            self.__errorhandler('current_track_duration')
+            return 0
+        t = t[0].get_property("innerHTML").split(":")
         return (int(t[0]) * 60 + int(t[1])) * 1000000  # Microseconds
 
     def set_position(self, position) -> None:
@@ -194,11 +222,14 @@ class Driver:
         """
         pfx = '//section[@id="nowPlaying"]' if self.is_now_playing_maximised() else ''
         el = self._driver.find_elements_by_xpath(
-            pfx + '//div[contains(@class,"progressBarWrapper")]/div/div[contains(@class,"interactionLayer")]')[0]
-        clickxpos = position * el.size["width"] / self.current_track_duration()
+            pfx + '//div[contains(@class,"progressBarWrapper")]/div/div[contains(@class,"interactionLayer")]')
+        if not el:
+            self.__errorhandler('set_position')
+            return
+        clickxpos = position * el[0].size["width"] / self.current_track_duration()
 
         action = webdriver.ActionChains(self._driver)
-        action.move_to_element_with_offset(el, clickxpos, 5)
+        action.move_to_element_with_offset(el[0], clickxpos, 5)
         action.click()
         action.perform()
 
@@ -212,15 +243,25 @@ class Driver:
     def set_fullscreen(self, value) -> None:
         """
         Set the window to fullscreen and maximise the player.
-        :param value: True if fullscreen. False is currently not implemented.
+        :param value: True if fullscreen. False if non-fullscreen maximised window; does not close the
+        large now-playing.
         :return: Nothing
         """
         if value:
             self._driver.fullscreen_window()
-            self._driver.execute_script("arguments[0].click();",
-                                        self._driver.
-                                        find_elements_by_xpath(
-                                            '//div[contains(@class,"overlayClickable")]')[0])
+        else:
+            self._driver.maximize_window()
+        if value and not self.is_now_playing_maximised():
+            t = self._driver.find_elements_by_xpath('//button[@data-test="toggle-now-playing"]')
+            if not t:
+                self.__errorhandler('set_fullscreen')
+                return
+            t2 = self._driver.find_elements_by_xpath('//button[@data-test="fullscreen"]')
+            if not t2:
+                self.__errorhandler('set_fullscreen_2')
+                self._driver.execute_script("arguments[0].click();", t[0])
+                return
+            self._driver.execute_script("arguments[0].click(); arguments[1].click();", t[0], t2[0])
 
     def open_uri(self, uri) -> None:
         """
@@ -230,9 +271,14 @@ class Driver:
         :return: Nothing
         """
         if not uri.startswith("tidal:/"):
+            self.__errorhandler("open_uri: Incorrect URI format")
             return
 
-        el = self._driver.find_elements_by_xpath("//*[@id=\"main\"]//a[1]")[-1]
+        el = self._driver.find_elements_by_xpath("//*[@id=\"main\"]//a[1]")
+        if not el:
+            self.__errorhandler('open_uri')
+            return
+        el = el[-1]
         self._driver.execute_script(
             "arguments[0].href=arguments[1];arguments[0].click();", el,
             uri.replace("tidal:/", ""))

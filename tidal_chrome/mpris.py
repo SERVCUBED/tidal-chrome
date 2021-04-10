@@ -15,6 +15,10 @@ from .__init__ import *
 from . import tidal_chrome_driver
 
 
+def handle_driver_error(err: str):
+    print("Error in finding driver element: %s" % err)
+
+
 class MPRIS(dbus.service.Object):
     def __init__(self, isdebug, bus, loop=None, prefs=None):
         self.isdebug = isdebug
@@ -24,7 +28,7 @@ class MPRIS(dbus.service.Object):
             prefs = preferences.Preferences(True)
         self.prefs = prefs
         self.quit = False
-        self.driver = tidal_chrome_driver.Driver(prefs)
+        self.driver = tidal_chrome_driver.Driver(prefs, handle_driver_error)
 
         self.baseproperties = {"CanQuit": True,
                                "Fullscreen": False,
@@ -34,7 +38,7 @@ class MPRIS(dbus.service.Object):
                                "DesktopEntry": "tidal-google-chrome",
                                "Identity": "Tidal-Chrome API bridge",
                                "SupportedUriSchemes": ['tidal'],
-                               "SupportedMimeTypes": ['']}
+                               "SupportedMimeTypes": ['x-scheme-handler/tidal']}
 
         self.playerproperties = {"PlaybackStatus": "Stopped",
                                  "LoopStatus": "None",
@@ -309,11 +313,10 @@ class MPRIS(dbus.service.Object):
                     'mpris:artUrl': self.driver.current_track_image(),
                     'xesam:title': curr_title,
                     'xesam:album': "",
-                    'xesam:artist': dbus.Array(self.driver.current_track_artists(),signature="s")
+                    'xesam:artist': dbus.Array(self.driver.current_track_artists(), signature="s")
                 }, signature="sv")
                 changed["Metadata"] = self.playerproperties["Metadata"]
                 changed["PlaybackStatus"] = state
-
 
             position = self.driver.current_track_progress()
             if self.playerproperties["Position"] != position:
@@ -379,4 +382,3 @@ class MPRIS(dbus.service.Object):
                 print("Update error: ", traceback.format_exc())
 
             time.sleep(5)
-
