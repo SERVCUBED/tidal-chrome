@@ -249,19 +249,28 @@ class Driver:
         """
         if value:
             self._driver.fullscreen_window()
+            self.set_now_playing_maximised(True)
         else:
             self._driver.maximize_window()
-        if value and not self.is_now_playing_maximised():
+
+    def set_now_playing_maximised(self, value) -> None:
+        """
+        Set the window to fullscreen and maximise the player.
+        :param value: True if to set. False to close the large now-playing window.
+        :return: Nothing
+        """
+        if value is not self.is_now_playing_maximised():
             t = self._driver.find_elements_by_xpath('//button[@data-test="toggle-now-playing"]')
             if not t:
-                self.__errorhandler('set_fullscreen')
+                self.__errorhandler('set_now_playing_maximised')
                 return
-            t2 = self._driver.find_elements_by_xpath('//button[@data-test="fullscreen"]')
-            if not t2:
-                self.__errorhandler('set_fullscreen_2')
-                self._driver.execute_script("arguments[0].click();", t[0])
-                return
-            self._driver.execute_script("arguments[0].click(); arguments[1].click();", t[0], t2[0])
+            self._driver.execute_script("arguments[0].click();", t[0])
+            # t2 = self._driver.find_elements_by_xpath('//button[@data-test="fullscreen"]')
+            # if not t2:
+            #     self.__errorhandler('set_now_playing_maximised_2')
+            #     self._driver.execute_script("arguments[0].click();", t[0])
+            #     return
+            # self._driver.execute_script("arguments[0].click(); arguments[1].click();", t[0], t2[0])
 
     def open_uri(self, uri) -> None:
         """
