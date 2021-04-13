@@ -10,6 +10,8 @@
 # D-Bus Specification:
 #   https://dbus.freedesktop.org/doc/dbus-specification.html
 
+from __future__ import absolute_import, print_function
+
 import sys
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop

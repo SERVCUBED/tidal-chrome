@@ -2,6 +2,8 @@
 # Author: SERVCUBED 2018-
 # License: AGPL
 
+from __future__ import print_function, annotations
+
 import sys
 import threading
 import time

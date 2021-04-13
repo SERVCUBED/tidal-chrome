@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from __future__ import absolute_import, with_statement, annotations
+
 from setuptools import setup
 from tidal_chrome import version, description, requires
 import os

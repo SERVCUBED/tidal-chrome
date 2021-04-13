@@ -2,6 +2,8 @@
 # Author: SERVCUBED 2018-
 # License: AGPL
 
+from __future__ import absolute_import
+
 import os
 from typing import Optional, Union
 
