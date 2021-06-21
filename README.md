@@ -10,8 +10,16 @@ Install Google Chrome from your repositories first. Then install the module with
     # pip3 install chromedriver_installer
     # pip3 install --upgrade setuptools
     # python3 setup.py install
-    # update-mime-database /usr/share/mime
+
+## Desktop integration
+
+A desktop entry will be installed for easy access from within an application launcher. This will have the path `/usr/share/applications/tidal-google-chrome.desktop`. You may run the following command as root if the installation script fails to register the desktop entry:
+
     # xdg-mime install /usr/share/applications/tidal-google-chrome.desktop
+
+For other mime type handling, the file `/usr/share/mime/packages/tital-google-chrome.xml`, conforming to [Freedesktop's MIME database specification](https://www.freedesktop.org/wiki/Specifications/shared-mime-info-spec/) will be created and then an attempt will be made to update your mime database using the `update-mime-database` tool.
+
+If either of these fail, the installation will still continue, but it is recommended to run these commands yourself.
 
 # Using TIDAL-Chrome
 
