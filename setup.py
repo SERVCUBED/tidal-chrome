@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+from os import path
 from setuptools import setup
 from tidal_chrome import version, description, requires
-import os
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
+with open(path.join(path.dirname(__file__), 'README.md')) as f:
     README = f.read()
 
 setup(
@@ -17,13 +17,15 @@ setup(
     author_email='ben@servc.eu',
     description=description,
     long_description=README,
-    install_requires=requires,
+    long_description_content_type='text/markdown',
+    python_requires='>=3.5',
     entry_points={
         'console_scripts': [
             'tidal-chrome=tidal_chrome.cli:run',
         ],
     },
     data_files=[
+        ('share/mime/packages', ['tidal-google-chrome.xml']),
         ('share/applications', ['tidal-google-chrome.desktop']),
     ],
 )
