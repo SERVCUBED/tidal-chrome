@@ -5,10 +5,22 @@ integration.
 
 # Installation
 
-Install Google Chrome from your repositories first. Then install the module with:
+Install Google Chrome from your repositories first. Then install the dependencies (`chromedriver` and `setuptools`) with the following (adjust accordingly for your distribution):
 
+    # apt install chromium-chromedriver python3-setuptools python3-selenium
+
+You can use the following to install the official chromedriver binary if you use the official Google Chrome rather than Chromium. The exact Chrome binary can be set using a preferences file.
+    
     # pip3 install chromedriver_installer
+
+Then, ensure that the Python 3 module `setuptools` is installed with *one* of the following commands:
+
+    # pacman -S python-setuptools
+    # apt install python3-setuptools
     # pip3 install --upgrade setuptools
+
+Then, install the main module with:
+
     # python3 setup.py install
     # update-mime-database /usr/share/mime
     # xdg-mime install /usr/share/applications/tidal-google-chrome.desktop
